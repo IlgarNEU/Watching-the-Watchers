@@ -1,0 +1,11 @@
+domain,action_name,start_time,end_time
+scribe.logs.roku.com,ANTENNA (ACR=ON),2026-04-22 19:01:50,2026-04-22 19:33:17
+scribe.logs.roku.com,ANTENNA 10.1 (ACR=ON),2026-04-22 20:08:29,2026-04-22 20:39:47
+scribe.logs.roku.com,ANTENNA 14.1 (ACR=ON),2026-04-23 08:40:40,2026-04-23 09:12:00
+scribe.logs.roku.com,FAST (ACR=ON),2026-04-22 22:23:05,2026-04-22 22:54:52
+scribe.logs.roku.com,HDMI (ACR=ON),2026-04-23 07:00:21,2026-04-23 07:31:17
+scribe.logs.roku.com,IDLE (ACR=ON),2026-04-23 22:20:53,2026-04-23 22:51:31
+scribe.logs.roku.com,NETFLIX (ACR=ON),2026-04-22 20:41:55,2026-04-22 21:14:14
+scribe.logs.roku.com,TUBI (ACR=ON),2026-04-22 21:49:08,2026-04-22 22:20:57
+scribe.logs.roku.com,YOUTUBE (ACR=ON),2026-04-22 22:57:00,2026-04-22 23:30:11
+scribe.logs.roku.com,SCREENCAST (ACR=ON),2026-05-19 02:16:59,2026-05-19 02:32:35

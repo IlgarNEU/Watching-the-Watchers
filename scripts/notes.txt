@@ -1,0 +1,182 @@
+1) Write a script for cross-OS filtering
+2) Data processing scripts are ready
+3) two timing files are required, one with mixed and one with no mixed
+
+TODO:
+1) Get mixed_all.parquet files ready to be downloaded
+2) Edit periodicity analysis
+3) Write cross-OS filtering script
+4) Get timings ready
+5) Modify the script to get volume for all traffic for all period
+6) Prepare Readme
+
+
+Priority:
+create subdirectories for everywhere
+
+
+domain_analysis_by_ip_and_sni.py -> update dict with the correct IPs. (if time allows. Not important.)
+create data/reference/reference_domains.csv -> domain col. test it.
+Add readme the directories to run the scripts.
+Explain some differences in the table numbers (manual things)
+
+
+
+
+
+
+Remember to delete the additional things from AutoUpload
+Provide Zenodo link in readme. To support reproducibility, the necessary header fields are extracted and compressed into a .parquet file per smart TV. Each .parquet file is ~ 1GB. These files are stored on Zenodo: 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Filter Endpoints (Section 5)
+Part of the methodology is to define the ACR endpoints for each smart TV through numerous filtering steps. This folder (and partly acr_behavior_analysis folder) provides the scripts for the filtering steps. Since the smart TVs contact a large number of endpoints and generate a large amount of network traffic, certain filtering steps take a considerable time. To skip this stage for our dataset, we also provide the .csv files for the traffic to/from the identified ACR endpoints, so that the analysis scripts can be run for those endpoints. Please see how to download the files using the script in Step 1, or you can find them in Google Drive link (https://drive.google.com/drive/folders/14AnQWI5DxC-03ya1vj1wfGKy54shhc4f?usp=sharing)
+
+##### Create initial list of endpoints contacted by the smart TV
+The domain_analysis_by_ip_and_sni.py script creates an ip_to_domain_mapping.csv file which maps IP addresses to domain names.
+Also, this script creates the list of endpoints contacted by the smart TV during each experiment session.
+
+Please use one of the following commands for <os_name>: tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
+
+      python domain_analysis_by_ip_and_sni.py <os_name>
+
+      python mixed_domain_analysis_by_ip_and_sni.py <os_name>
+
+##### Filter well-known services
+Once we have the list of all endpoints, we remove the ones for well known services. 
+
+Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
+
+      python filter_domains.py <os_name>
+
+##### Group by base name
+We group the fully qualified domain names into base domain names. 
+
+Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
+
+      python group_base_domains.py <os_name>
+
+##### Opt-in filter
+We detect the endpoints contacted during a number of experiments above the defined threshold:
+
+Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
+
+      python quantify_domain_existence.py <os_name>
+
+##### cross-OS filter
+NOTE! This step can be run in one of the two alternative methods:
+1) The scripts until that point can be run for all TVs, so that in this step, the enpoints common to at least two smart TVs can be detected and eliminated. For that method:
+
+      python crossOS_filtering.py
+
+2) If there is a time limitation to running the scripts for all TVs first, we provide the list of domains common to at least two smart TVs, so that the script can be run for each smart TV, even if the previous steps have not been completed for all TVs:
+
+      python crossOS_filtering_from_list.py
+
+##### traffic ratio
+
+To detect the traffic ratio for the individual domains, so that we can identify the endpoints with higher outgoing traffic, we need to create the .csv files for each individual endpoint remaining from the previous steps. 
+
+Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
+
+      python acrfileCreation.py <os_name>
+
+      python create_the_final_domain_list.py <os_name>
+
+      python manager_volume_analysis.py <os_name>
+
+
+Because Sony Google TV uses DNS over HTTPS, a separate script is used to create the ACR endpoint traffic database and its analysis:
+
+      python sony_acrfileCreation.py google
+
+
+
+##### periodicity analysis
+Then we define the list of domains with periodic behavior:
+
+NOTE! Please note that certain TVs do not need to be tested for periodicity since only one domain is left in the previous step. (Table 4)
+
+
+
+Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, smartcast, google_tcl
+
+
+      python periodicity_analysis.py <os_name>
+
+
+
+### ACR behavior analysis (Section 6)
+To generate the time series and CDF figures for network traffic to ACR endpoints, the following commands are used. The analysis is completed on those figures to define the ACR activity and answer each research question.
+
+How to interpret the results: Each plot is named with the experiment scenario and its experiment time. When we see high network activity to the ACR endpoint in the plots, it means that there is an ACR data transfer to the endpoint. Section 6.1 answers which scenarios are subject to ACR, which is defined from the observations in the plots. Section 6.2 analyzes the ACR opt-out efficiency. To interpret the results, one needs to examine the (ACR=OFF) plots. If there is high network activity in these plots, it means that the ACR opt-out is ineffective, while low or no network traffic means that the opt-out settings are effective. Section 6.3 answers the question of ACR modality for smart TVs. To interpret the results, one needs to compare the Antenna subscenarios. The Antenna 14.1 subscenario in our experiments is dynamic video but no audio, and the Antenna 10.1 subscenario is audio but black screen. When we see high traffic during Antenna 14.1, but low traffic during Antenna 10.1, it means that the modality is video ACR, and vice versa.
+
+
+Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, fire, smartcast
+
+   python manager_analysis.py <os_name>
+
+For Sony Google TV:
+
+   python sony_manager_analysis.py google
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The scripts for this project consist of two components: experiment control scripts and processing/analysis scripts. The experiment control scripts can be run with smart TVs of the same brand/OS as our inventory. The processing/analysis scripts can be run with the dataset we provide or with researchers' own network trace datasets.
+
+1) Scripts to run experiments.
+We developed control scripts for each smart TV, which allowed us to run automated large-scale measurements. To successfully run the experiments with each smart TV, the TV-specific parameters should be adapted. These include IP and MAC addresses, and app-specific algorithms (the navigation menu of each smart TV is different depending on how users place applications on the main menu).

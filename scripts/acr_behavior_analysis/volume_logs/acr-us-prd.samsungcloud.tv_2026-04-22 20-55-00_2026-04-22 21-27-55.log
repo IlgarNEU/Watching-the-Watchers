@@ -1,0 +1,16 @@
+# Traffic Volume Report
+# Domain       : acr-us-prd.samsungcloud.tv
+# Start        : 2026-04-22 20:55:00
+# End          : 2026-04-22 21:27:55
+# Duration (s) : 1675.0
+# MAC          : 04:e4:b6:74:dd:94
+#
+metric,value
+outgoing_bytes,98793
+outgoing_packets,151
+outgoing_avg_bps,58.9809
+incoming_bytes,44695
+incoming_packets,78
+incoming_avg_bps,26.6836
+total_bytes,143488
+total_packets,229

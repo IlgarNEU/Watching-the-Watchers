@@ -1,0 +1,8 @@
+{
+  "auth_token": "Z8od8sr4df",
+  "pairing_req_token": 896436,
+  "device_id": "python-vizio-remote-001",
+  "device_name": "Python Vizio Remote",
+  "tv_ip": "192.168.10.80",
+  "tv_port": 7345
+}
