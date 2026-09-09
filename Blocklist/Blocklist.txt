@@ -1,0 +1,174 @@
+# =============================================================================
+#  PrivACR ACR Blocklist
+#  Smart-TV Automatic Content Recognition (ACR) endpoints
+# =============================================================================
+#
+#  Source: "Watching the Watchers: Privacy Analysis of U.S. Smart TV
+#          Automatic Content Recognition"
+#
+#  Covers the second-party ACR endpoints validated across the eight dominant
+#  U.S. smart-TV operating systems (~95% market). Blocking these domains
+#  suppresses ACR viewing-history collection at the network layer, including
+#  on platforms where the on-device opt-out is ineffective (e.g. Samsung
+#  Tizen, Vizio SmartCast).
+#
+#  HOW TO USE
+#    Pi-hole / AdGuard Home : add this file as a custom blocklist (URL or
+#                             local import). Wildcards work in AdGuard Home;
+#                             for Pi-hole use the regex/exact entries.
+#    /etc/hosts             : use the 0.0.0.0 lines below (exact hosts only;
+#                             hosts files do not support wildcards).
+#    Router / firewall      : block the second-level domains listed.
+#
+#  IMPORTANT CAVEATS
+#    * Blocking ACR domains may disable "enhanced viewing" / content-based
+#      recommendation features, but does NOT affect normal streaming/playback.
+#    * The Amagi cleartext-DNS viewing-history leak (see bottom section) is
+#      delivered over the SAME hostnames used for First-Party (FAST) channel
+#      delivery. Blocking it BREAKS free streaming. It is listed separately
+#      and is OFF by the recommendation; an OS-side fix is required.
+#    * ACR operators rotate endpoints. Second-level-domain / wildcard rules
+#      are more durable than the point-in-time exact hostnames.
+#
+#  Confidence tiers:
+#    [VALIDATED] endpoint confirmed by the paper's four-indicator methodology
+#    [SUSPECTED] strong supporting evidence, no payload-level confirmation
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# SAMSUNG  -  Tizen OS  (Samsung-operated ACR)        [VALIDATED]
+#   Video-based ACR. On-device opt-out FAILS in >60% of in-scope scenarios,
+#   so network-layer blocking is the only reliable suppression.
+# -----------------------------------------------------------------------------
+0.0.0.0 acr-us-prd.samsungcloud.tv
+0.0.0.0 log-ingestion.samsungacr.com
+0.0.0.0 log-config.samsungacr.com
+
+
+# -----------------------------------------------------------------------------
+# LG  -  webOS  (Alphonso ACR)                        [VALIDATED]
+#   Audio-based ACR. On-device opt-out is fully effective, but blocking adds
+#   defense-in-depth. Alphonso rotates through numbered tkacrNNN hosts, so a
+#   wildcard is strongly preferred over the exact list below.
+#   Wildcard:  *.alphonso.tv
+# -----------------------------------------------------------------------------
+0.0.0.0 tkacr324.alphonso.tv
+0.0.0.0 tkacr474.alphonso.tv
+0.0.0.0 tkacr534.alphonso.tv
+0.0.0.0 tkacr535.alphonso.tv
+0.0.0.0 tkacr573.alphonso.tv
+0.0.0.0 tkacr574.alphonso.tv
+0.0.0.0 tkacr620.alphonso.tv
+0.0.0.0 tkacr621.alphonso.tv
+0.0.0.0 tkacr622.alphonso.tv
+0.0.0.0 tkacr623.alphonso.tv
+0.0.0.0 tkacr625.alphonso.tv
+0.0.0.0 tkacr626.alphonso.tv
+0.0.0.0 tkacr627.alphonso.tv
+0.0.0.0 tkacr629.alphonso.tv
+0.0.0.0 tkacr633.alphonso.tv
+0.0.0.0 tkacr637.alphonso.tv
+0.0.0.0 tkacr640.alphonso.tv
+0.0.0.0 tkacr641.alphonso.tv
+0.0.0.0 tkacr645.alphonso.tv
+0.0.0.0 tkacr646.alphonso.tv
+0.0.0.0 tkacr647.alphonso.tv
+0.0.0.0 tkacr648.alphonso.tv
+0.0.0.0 tkacr673.alphonso.tv
+0.0.0.0 tkacr718.alphonso.tv
+0.0.0.0 tkacr719.alphonso.tv
+0.0.0.0 tkacr725.alphonso.tv
+0.0.0.0 tkacr727.alphonso.tv
+0.0.0.0 tkacr728.alphonso.tv
+0.0.0.0 tkacr730.alphonso.tv
+0.0.0.0 tkacr733.alphonso.tv
+0.0.0.0 tkacr734.alphonso.tv
+0.0.0.0 tkacr742.alphonso.tv
+0.0.0.0 tkacr749.alphonso.tv
+0.0.0.0 tkacr750.alphonso.tv
+0.0.0.0 tkacr751.alphonso.tv
+0.0.0.0 tkacr752.alphonso.tv
+0.0.0.0 tkacr753.alphonso.tv
+0.0.0.0 tkacr755.alphonso.tv
+0.0.0.0 tkacr756.alphonso.tv
+0.0.0.0 tkacr758.alphonso.tv
+0.0.0.0 tkacr759.alphonso.tv
+0.0.0.0 bl-server.alphonso.tv
+0.0.0.0 prov-lg.alphonso.tv
+0.0.0.0 clockskew.alphonso.tv
+
+
+# -----------------------------------------------------------------------------
+# ROKU / TCL-Roku  -  Roku OS  (Roku-operated ACR)    [VALIDATED]
+#   Single shared endpoint for both Roku- and TCL-branded Roku TVs.
+#   Note: opt-out does NOT stop first-party (Roku Channels) ACR; blocking does.
+# -----------------------------------------------------------------------------
+0.0.0.0 scribe.logs.roku.com
+
+
+# -----------------------------------------------------------------------------
+# SONY  -  Google TV  (Samba TV ACR)                  [VALIDATED]
+#   On Bravia N-series. Samba also uses a hardcoded IP (216.183.117.80) that
+#   bypasses DNS-based blocking; block it at the firewall/router layer too.
+#   Please note, that these domains provided are only for completeness and that 
+#   Sony uses DNS over HTTPS. Hence, blocking these might be ineffective.
+#   Wildcard:  *.samba.tv
+# -----------------------------------------------------------------------------
+0.0.0.0 api.cid.samba.tv
+0.0.0.0 dpn.cid.samba.tv
+0.0.0.0 events.cid.samba.tv
+0.0.0.0 fling.cid.samba.tv
+0.0.0.0 platform.cid.samba.tv
+0.0.0.0 preferences.cid.samba.tv
+0.0.0.0 cdn.tvp.samba.tv
+0.0.0.0 manager.tvp.samba.tv
+0.0.0.0 pixel.mtrcs.samba.tv
+# IP (firewall-layer only; not enforceable via hosts/DNS):
+# 216.183.117.80
+
+
+# -----------------------------------------------------------------------------
+# AMAZON FIRE TV  -  Fire OS  (Amazon-operated ACR)   [VALIDATED]
+#   On-device opt-out is fully effective. Gateway host below.
+# -----------------------------------------------------------------------------
+0.0.0.0 gateway-ink.amazon.com
+
+
+# -----------------------------------------------------------------------------
+# SUPERSONIC  -  VIDAA OS  (Nexxen / Unruly ACR)      [VALIDATED]
+#   Audio-based ACR over UNENCRYPTED MQTT (vulnerable broker; see paper).
+#   Rotates through numbered fp.us hosts.
+#   Wildcard:  *.acr.unruly.co
+# -----------------------------------------------------------------------------
+0.0.0.0 16.fp.us.acr.unruly.co
+0.0.0.0 40.fp.us.acr.unruly.co
+0.0.0.0 acr.unruly.co
+
+
+# -----------------------------------------------------------------------------
+# VIZIO  -  SmartCast OS  (Inscape ACR)               [SUSPECTED]
+#   Content-correlated traffic to a Kinesis endpoint continues in 100% of
+#   opted-out scenarios. Payload not inspectable, so classified suspected.
+#   WARNING: kinesis.us-west-2.amazonaws.com is shared AWS infrastructure.
+#   Blocking the bare Kinesis host may break unrelated services; prefer the
+#   Inscape control domains below and apply the Kinesis rule with care.
+# -----------------------------------------------------------------------------
+0.0.0.0 control2.tvinteractive.tv
+0.0.0.0 control-zoo-default.tvinteractive.tv
+0.0.0.0 users.tvinteractive.tv
+# Shared infra (block only if you understand the trade-off):
+# 0.0.0.0 kinesis.us-west-2.amazonaws.com
+
+
+# =============================================================================
+#  OPTIONAL / NOT RECOMMENDED BY DEFAULT
+#  Amagi cleartext viewing-history channel (Xumo, SmartCast, Roku, Fire OS)
+#
+#  Program titles leak in plaintext DNS/SNI on the FAST delivery path,
+#  independent of ACR opt-out. These hostnames ALSO deliver the free
+#  streaming content, so blocking them breaks First-Party / FAST streaming.
+#  No safe client-side fix exists; included for completeness only.
+#
+#  # 0.0.0.0 *.amagi.tv     (wildcard; AdGuard Home only)
+# =============================================================================

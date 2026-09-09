@@ -58,6 +58,10 @@ This research artifact includes:
 │   ├── periodicity_results    # results of periodicity filter will be here
 │   ├── reference              # helper list of domains for cross-OS filtering are here
 │   ├── volume_logs            # individual logs of traffic ratio/volume for each endpoint will be generated here
+├── Endpoints remaining after each filtering step/
+│   ├── os_name                # the list of endpoints remaining after each filtering step (Section 5.1) for each OS
+├── Blocklist/
+│   ├── blocklist.txt          # tested and verified blocklist for ACR endpoints
 
 
 ```
