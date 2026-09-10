@@ -269,10 +269,14 @@ python download_dataset.py pcaps test_pcaps
 
 
 3) Necessary fields extracted and merged into one .parquet file per smart TV:
+   ```bash
    python download_dataset.py parquets <os_name>
+   ```
 
 4) One .csv file per ACR endpoint with necessary fields:
+   ```bash
    python download_dataset.py csvs <os_name>
+   ```
 
 
 
