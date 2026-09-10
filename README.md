@@ -130,27 +130,33 @@ git clone https://github.com/IlgarNEU/Watching-the-Watchers.git
 You can download the latest version of Python from the official website: https://www.python.org/downloads/
 
 3. Install tshark
-On Linux: 
+On Linux:
 
+```bash
 sudo apt-get update
 sudo apt-get install -y tshark
-
 sudo usermod -a -G wireshark $USER
 newgrp wireshark
-
+```
 
 On macOS:
 Check if Homebrew is installed:
 
+```bash
 brew --version
+```
 
 If not installed, install it:
 
+```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
 
 Then install tshark:
 
+```bash
 brew install wireshark
+```
 
 3. Go inside "scripts" folder on terminal, create a virtual environment using pyenv, and activate it:
 
