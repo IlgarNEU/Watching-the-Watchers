@@ -21,10 +21,10 @@ Authors: Ilgar Mammadov; Het Rutul Joshi; Daniel J. Dubois; David Choffnes;
 }
 
 This research artifact includes:
-- Scripts to control smart TVs
-- Scripts to reproduce the results from the dataset we provide, or from other researchers' network datasets collected from smart TVs
-- Datasets (small dataset inside the data folder, larger dataset to be downloaded from Zenodo and/or Google Drive at runtime)
-- Blocklist for ACR endpoints
+- Scripts to control smart TVs (Section 4.2)
+- Scripts to reproduce the results from the dataset we provide (Section 4), or from other researchers' network datasets collected from smart TVs 
+- Datasets (small dataset inside the "data" folder, larger dataset on Zenodo and/or Google Drive)
+- Blocklist for ACR endpoints (Appendix B.2)
 - Per-TV record of candidate endpoints remaining after each filtering step (the CSVs underlying Table 4)
 - Detailed reproduction instructions
 
