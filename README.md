@@ -72,9 +72,8 @@ This research artifact includes:
 
 ### Security/Privacy Issues and Ethical Concerns
 
-We provide the network traces collected from our controlled experiments in a laboratory environment. 
 Our experiments on our own devices did not entail human subjects or ethical concerns. 
-We do not provide the data collected from VIDAA OS which used plaintext communication
+We do not provide the data collected from VIDAA OS which uses plaintext communication
 to transfer sensitive household data, including PII. 
 
 
