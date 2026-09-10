@@ -94,7 +94,7 @@ For reproducibility tests:
 2. The scripts do not require a special version of the listed operating systems, as long as Python 3 and TShark are available. They were tested using Python 3.13.7.
 4. Python virtual environment is required.
 5. requirements.txt contains the list of required dependencies.
-7. The dataset required to run the artifacts include .pcap files containing network traces of smart TVs, their compressed version into .parquet files, experiment timing .csv files, and network trace dataset to specific endpoints as .csv files. Depending on the steps to be experimented with, only a subset of the dataset is required. We provide experiment timing .csv files inside /data/experiment_timings folder. In the corresponding steps, we provide the instructions to obtain the necessary dataset.
+7. The dataset required to run the artifacts include .pcap files containing network traces of smart TVs, their compressed .parquet version, timing logs of experiments in .csv files, and network trace dataset to specific ACR endpoints as .csv files. Depending on the steps to be completed, only a subset of the dataset is required. We provide timing logs as .csv files inside /data/experiment_timings folder. In the corresponding steps, we provide the instructions to obtain the remaining necessary dataset.
 
 ### Estimated Time and Storage Consumption
 
