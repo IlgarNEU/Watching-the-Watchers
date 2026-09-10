@@ -254,28 +254,28 @@ tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_no
 
 1) Network traces as .pcap files:
 ```bash
-   python download_dataset.py pcaps <os_name>
+   python ./data_processing/download_dataset.py pcaps <os_name>
 ```
    For example,
 ```bash
-python download_dataset.py pcaps tizen
+python ./data_processing/download_dataset.py pcaps tizen
 ```
 
 NOTE! To test the scripts for this step with smaller dataset, please use the following command:
 
 ```bash
-python download_dataset.py pcaps test_pcaps
+python ./data_processing/download_dataset.py pcaps test_pcaps
 ```
 
 
 3) Necessary fields extracted and merged into one .parquet file per smart TV:
    ```bash
-   python download_dataset.py parquets <os_name>
+   python ./data_processing/download_dataset.py parquets <os_name>
    ```
 
 4) One .csv file per ACR endpoint with necessary fields:
    ```bash
-   python download_dataset.py csvs <os_name>
+   python ./data_processing/download_dataset.py csvs <os_name>
    ```
 
 
