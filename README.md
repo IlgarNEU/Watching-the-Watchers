@@ -100,7 +100,7 @@ For reproducibility tests:
 
 The overall time required to run the analysis scripts end-to-end for one smart TV requires up to 24 hours with intensive human involvement. However, we provide mid-level results which can be used to reduce the number of steps for reproducing the results. Depending on the number of steps and scale, the required time can be decreased to 1 hour.
 
-The storage requirement also depends on the number of steps to be experimented. The overall dataset requires ~1TB storage. The overall dataset for only one smart TV requires ~100 GB storage. However, we provide mid-level dataset, which decreases this requirement to ~1 GB.
+The storage requirement also depends on the number of steps to be completed. The overall dataset requires ~1TB storage. The overall dataset for only one smart TV requires ~100 GB storage. However, we provide mid-level dataset, which decreases this requirement to ~1 GB.
 
 ## Environment 
 
