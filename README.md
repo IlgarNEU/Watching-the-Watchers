@@ -176,16 +176,20 @@ pip install -r requirements.txt
 
 Test dependency installation:
 
+```bash
 python -c "
 import pandas, numpy, scipy, matplotlib, gdown
 print('✓ All Python packages installed')
 "
+```
 
 Expected to see: ✓ All Python packages installed
 
 Test tshark installation: 
 
+```bash
 tshark --version
+```
 
 Expected to see a specific version of tshark installed, for example: TShark (Wireshark) 4.6.8 (Git commit e677bf052328).
 
