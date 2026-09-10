@@ -108,10 +108,12 @@ The storage requirement also depends on the number of steps to be completed. The
 
 The TV-control scripts, data processing and analysis code, ACR endpoint blocklist, and per-TV record of candidate endpoints after each filtering step are provided in the following GitHub repository. The repository also contains the small dataset, such as timing logs of the experiments, which is necessary to run the scripts. We provide the larger dataset necessary to run the scripts in Zenodo. However, Zenodo has a storage limitation. Our full dataset is ~1 TB. To overcome this limitation and support reproducibility, we follow this methodology:
 
-1) The dataset from all smart TVs (which is ~1TB) is provided using Google Drive as .pcap files: https://drive.google.com/drive/folders/1QLnMNb8Zke8iQVpddlIYvZm2yjCTTrLX?usp=sharing 
-2) To support reproducibility, the necessary header fields are extracted and compressed into a .parquet file per smart TV. Each .parquet file is ~ 1GB. These files are stored on Zenodo and also Google Drive: (https://drive.google.com/drive/u/0/folders/1kZ7DJ1FXc1jHn60JEaWy5QPzz81Y8cci)
+1) The dataset from all smart TVs (which is ~1TB) is provided using Google Drive as .pcap files: https://drive.google.com/drive/folders/1QLnMNb8Zke8iQVpddlIYvZm2yjCTTrLX?usp=sharing
+2) We also provide a subset of source .pcap data on Zenodo to support usage of the preprocessing scripts: 
+3) To support straightforward reproducibility, the necessary header fields are extracted and compressed into a .parquet file per smart TV. Each .parquet file is ~ 1GB. These files are stored on Zenodo and also Google Drive: (https://drive.google.com/drive/u/0/folders/1kZ7DJ1FXc1jHn60JEaWy5QPzz81Y8cci)
 Using those .parquet files, one can skip the data preprocessing step and still complete the filtering and ACR behavior analysis steps.
-3) We also provide a subset of source .pcap data on Zenodo to support usage of the preprocessing scripts.
+4) .csv files containing the network activity to each ACR endpoint on Zenodo: 
+
 
 https://github.com/IlgarNEU/Watching-the-Watchers.git
 
