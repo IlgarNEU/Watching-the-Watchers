@@ -112,7 +112,7 @@ The TV-control scripts, data processing and analysis code, ACR endpoint blocklis
 2) We also provide a subset of source .pcap data on Zenodo to support usage of the preprocessing scripts: 
 3) To support straightforward reproducibility, the necessary header fields are extracted and compressed into a .parquet file per smart TV. Each .parquet file is ~ 1GB. These files are stored on Zenodo and also Google Drive: (https://drive.google.com/drive/u/0/folders/1kZ7DJ1FXc1jHn60JEaWy5QPzz81Y8cci)
 Using those .parquet files, one can skip the data preprocessing step and still complete the filtering and ACR behavior analysis steps.
-4) .csv files containing the network activity to each ACR endpoint on Zenodo: 
+4) .csv files containing the network activity to each ACR endpoint on Zenodo. One can use this dataset to skip filtering steps and complete the ACR behavior analysis step.
 
 
 https://github.com/IlgarNEU/Watching-the-Watchers.git
