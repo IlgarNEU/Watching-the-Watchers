@@ -199,7 +199,15 @@ Expected to see a specific version of tshark installed, for example: TShark (Wir
 
 #### Main Result 1: Section 6.1 - Observed ACR-Attributable Traffic (RQ1)
 
-To answer the research question 1, i.e. to understand which scenarios are subject to ACR tracking, we examine the time series graphs generated inside /data/analysis_figures/<os_name> folders. When we see high, periodic traffic during an experiment (the plot names mention the experiment/scenario name), we interpret that ACR tracking is active during that scenario. When we see low-amplitude or rare traffic in comparison to other scenarios, we interpret that ACR tracking is deactive during that scenario. We have summarized the ACR-subject scenarios and non-ACR scenarios in the takeaways subsection of Section 6.1 as well as Figure 6 (a) heatmap.
+To answer the Research Question 1, i.e. to understand which scenarios are subject to ACR tracking, we examine the time series graphs generated inside /data/analysis_figures/<os_name> folders. 
+
+The figure names follow this pattern: <domain_name> <experiment_name> <(ACR=ON/OFF)> <experiment_time>.csv
+
+When ACR tracking is active (during ACR-subject scenarios, such as Antenna), we observe network traffic with high amplitude (x-axis) and periodic pattern (y-axis) in comparison with the remaining scenarios (not ACR-subject scenarios, such as Netflix).
+
+When ACR tracking is not active, we observe network traffic with low-amplitude and rare spikes. 
+
+We have summarized the ACR-subject scenarios and non-ACR scenarios in the takeaways subsection of Section 6.1 as well as Figure 6 (a) heatmap.
 
 #### Main Result 2: ACR opt-out effectiveness (RQ2)
 
