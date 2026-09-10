@@ -61,6 +61,10 @@ DATA_FOLDERS = {
             "folder_id": "1YSyNIg72Xt3UNOX4ELy_E0XJDT7_7R26",
             "description": "Google (TCL) pcaps datasets"
         },
+        "test_pcaps": {
+            "folder_id": "1YvK12U7RXQXawu8SYksgMZ2yQOsWw1JK",
+            "description": "small size pcaps datasets"
+        },
     },
     "parquets": {
         "tizen": {
