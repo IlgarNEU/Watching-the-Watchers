@@ -160,13 +160,17 @@ brew install wireshark
 
 3. Go inside "scripts" folder on terminal, create a virtual environment using pyenv, and activate it:
 
+```bash
 cd Watching-the-Watchers/scripts
 python3 -m venv venv
 source ./venv/bin/activate
+```
 
 4. Install dependencies:
-pip install -r requirements.txt
 
+```bash
+pip install -r requirements.txt
+```
 
 ### Testing the Environment 
 
