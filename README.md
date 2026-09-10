@@ -211,7 +211,16 @@ We have summarized the ACR-subject scenarios and non-ACR scenarios in the takeaw
 
 #### Main Result 2: ACR opt-out effectiveness (RQ2)
 
-When ACR is opted-out by a user, we expect to see low or no network traffic to the ACR endpoints. However, our results show that for Tizen OS and SmartCast OS, the ACR activity continues during opted-out state. To interpret the results from the plots generated inside analysis_figures folder, one should examine the plots named with (ACR=OFF). 
+When ACR is opted-out by a user, we expect to see low or no network traffic to the ACR endpoints. However, our results show that on Tizen OS and SmartCast OS, the ACR activity continues during opted-out state for a considerable number of measurements (Figure 6 (a) heatmap). To interpret the results from the plots generated inside analysis_figures folder, one should examine the plots named with (ACR=OFF). The figures with high-amplitude and high-frequency traffic (similar to ACR-subject scenarios during ACR opted-in experiments) suggest that ACR tracking continues even when a user opts out.
+
+#### Main Result 3: ACR modalities
+
+Although we do not provide the VIDAA OS's network traces because of privacy/security reasons, the ACR modalities of certain other OSes (Tizen, webOS, Google TV) can be understood from the comparison of "Antenna" subscenarios. In our dataset, "Antenna 10.1" corresponds to "Black screen + Audio" and "Antenna 14.1" corresponds to "Dynamic + no audio" scenarios on Table 2.
+
+How to interpret the results from analysis figures: 
+webOS: When we observe high-amplitude traffic for Antenna 10.1 (ACR=ON) experiments (black + audio), but low-amplitude traffic during Antenna 14.1 (ACR=OFF) experiments (dynamic + no audio), we interpret that the ACR modality is audio. 
+
+Tizen and Google TV: On the other hand, when we observe high-amplitude traffic for Antenna 14.1 (ACR=ON) experiments (dynamic + no audio), but low-amplitude traffic during Antenna 10.1 (ACR=OFF) experiments (black screen + audio), we interpret that the ACR modality is video.
 
 ### Experiments
 1) Processing/Analysis scripts. These scripts consist of three stages:
