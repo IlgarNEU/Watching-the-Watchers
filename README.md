@@ -259,6 +259,28 @@ The number and size of .pcap files for the full dataset is very large. We provid
 2) Necessary fields extracted and merged into one .parquet file per smart TV:
 Please use one of the following for <os_name>: 
 tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
+<<<<<<< HEAD
+=======
+
+
+1) Network traces as .pcap files:
+```bash
+   python ./data_processing/download_dataset.py pcaps <os_name>
+```
+   For example,
+```bash
+python ./data_processing/download_dataset.py pcaps tizen
+```
+
+NOTE! To test the scripts for this step with smaller dataset, please use the following command:
+
+```bash
+python ./data_processing/download_dataset.py pcaps test_pcaps
+```
+
+
+3) Necessary fields extracted and merged into one .parquet file per smart TV:
+>>>>>>> 93182e463ef43ca2db70b75c8e77265edf437dbb
    ```bash
    python ./data_processing/download_dataset.py parquets <os_name>
    ```
