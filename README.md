@@ -109,7 +109,7 @@ The storage requirement also depends on the number of steps to be completed. The
 The TV-control scripts, data processing and analysis code, ACR endpoint blocklist, and per-TV record of candidate endpoints after each filtering step are provided in the following GitHub repository. The repository also contains the small dataset, such as timing logs of the experiments, which is necessary to run the scripts. We provide the larger dataset necessary to run the scripts in Zenodo. However, Zenodo has a storage limitation. Our full dataset is ~1 TB. To overcome this limitation and support reproducibility, we follow this methodology:
 
 1) The dataset from all smart TVs (which is ~1TB) is provided using Google Drive as .pcap files: https://drive.google.com/drive/folders/1QLnMNb8Zke8iQVpddlIYvZm2yjCTTrLX?usp=sharing
-2) We also provide a subset of source .pcap data on Zenodo to support usage of the preprocessing scripts: 
+2) We also provide a subset of source .pcap data on Zenodo to support usage of the preprocessing scripts: https://zenodo.org/records/22695930 
 3) To support reproducibility, the necessary header fields are extracted and compressed into a .parquet file per smart TV. Each .parquet file is ~ 1GB. These files are stored on Zenodo and also Google Drive: (https://drive.google.com/drive/u/0/folders/1kZ7DJ1FXc1jHn60JEaWy5QPzz81Y8cci)
 Using those .parquet files, one can skip the data preprocessing step and still complete the filtering and ACR behavior analysis steps.
 4) .csv files containing the network activity to each ACR endpoint on Zenodo. One can use this dataset to skip filtering steps and complete the ACR behavior analysis step.
@@ -248,34 +248,26 @@ We recommend continuing to read these instructions and downloading the dataset o
 
 
 
+1) Network traces as .pcap files:
+The number and size of .pcap files for the full dataset is very large. We provide smaller subset of those files to support testing the data processing scripts:
+
+```bash
+   python ./data_processing/download_dataset.py pcaps test_pcaps
+```
+
+
+2) Necessary fields extracted and merged into one .parquet file per smart TV:
 Please use one of the following for <os_name>: 
 tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
-
-
-1) Network traces as .pcap files:
-```bash
-   python download_dataset.py pcaps <os_name>
-```
-   For example,
-```bash
-python download_dataset.py pcaps tizen
-```
-
-NOTE! To test the scripts for this step with smaller dataset, please use the following command:
-
-```bash
-python download_dataset.py pcaps test_pcaps
-```
-
-
-3) Necessary fields extracted and merged into one .parquet file per smart TV:
    ```bash
-   python download_dataset.py parquets <os_name>
+   python ./data_processing/download_dataset.py parquets <os_name>
    ```
 
-4) One .csv file per ACR endpoint with necessary fields:
+3) One .csv file per ACR endpoint with necessary fields:
+Please use one of the following for <os_name>: 
+tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
    ```bash
-   python download_dataset.py csvs <os_name>
+   python ./data_processing/download_dataset.py csvs <os_name>
    ```
 
 
