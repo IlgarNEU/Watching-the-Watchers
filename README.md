@@ -13,12 +13,14 @@ Requested Badge(s):
 - Paper Title: Watching the Watchers: Privacy Analysis of U.S. Smart TV Automatic Content Recognition
 - Authors: Ilgar Mammadov; Het Rutul Joshi; Daniel J. Dubois; David Choffnes;
 
+```
 @inproceedings{watchingthewatchers27,
   title={Watching the Watchers: Privacy Analysis of U.S. Smart TV Automatic Content Recognition},
   author={Ilgar Mammadov and Het Rutul Joshi and Daniel J. Dubois and David Choffnes},
   booktitle={Proceedings on Privacy Enhancing Technologies Symposium (PoPETs)},
   year={2027}
 }
+```
 
 This research artifact includes:
 - Smart-TV control scripts (Section 4.2)
@@ -105,7 +107,7 @@ For reproducibility tests:
 
 For the full dataset for one smart TVs:
 1. ~ 1 human-hour + ~ 24 compute-hours
-2. > 100 GB storage
+2. ~ 100 GB storage
 
 The overall time required to run the analysis scripts end-to-end for one smart TV requires up to 24 hours. However, we provide smaller test dataset to test the scripts within a shorter time. We also provide mid-level results which can be used to reduce the number of steps for reproducing the results.
 
@@ -120,7 +122,9 @@ The TV-control scripts, data processing and analysis code, ACR endpoint blocklis
 On the other hand, although Zenodo has enough storage to provide the compressed version of the full dataset and/or subset of raw dataset to test scripts end-to-end, the size of our full raw dataset which may be beneficial for IoT researchers is over Zenodo's storage limitations (>1 TB). To overcome this limitation and support future IoT research, we follow this methodology:
 
 1) We provide a subset of source raw data on Zenodo to support usage of the scripts end-to-end: https://zenodo.org/records/22695930 
+
 2) The necessary header fields are extracted and compressed into a .parquet file per smart TV. Each .parquet file is ~ 1GB. These files are stored on Zenodo. Using those .parquet files, one can skip the data preprocessing step and still complete the filtering and ACR behavior analysis steps.
+```
       Tizen: https://zenodo.org/records/22698084 
       webOS: https://zenodo.org/records/22698120 
       Roku:  https://zenodo.org/records/22698164 
@@ -132,8 +136,10 @@ On the other hand, although Zenodo has enough storage to provide the compressed 
       Google (Sony W830K): https://zenodo.org/records/22726049
       Google (Hisense): https://zenodo.org/records/22726070 
       Google (TCL): https://zenodo.org/records/22715547 
+```
 
 3) .csv files containing the network activity to each ACR endpoint are stored on Zenodo. One can use this dataset to skip filtering steps and complete the ACR behavior analysis step.
+```
       Tizen: https://zenodo.org/records/22733423
       webOS: https://zenodo.org/records/22733487
       Roku: https://zenodo.org/records/22733497
@@ -141,6 +147,7 @@ On the other hand, although Zenodo has enough storage to provide the compressed 
       Google Sony TV: 
       Fire: https://zenodo.org/records/22733576
       SmartCast: https://zenodo.org/records/22733542
+```
 4) The raw dataset from all smart TVs (>1 TB) is provided using Google Drive as .pcap files: https://drive.google.com/drive/folders/1QLnMNb8Zke8iQVpddlIYvZm2yjCTTrLX?usp=sharing
 
 
