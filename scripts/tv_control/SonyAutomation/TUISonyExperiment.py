@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-"""
-Sony Bravia ACR Experiment — Rich Terminal UI
-==============================================
-Drop-in replacement for SonyAutomationManager.py.
-
-Usage:
-    python TUISonyExperiment.py
-"""
-
 import ast
 import asyncio
 import logging
@@ -32,7 +23,6 @@ from rich.table import Table
 
 from SonyAutomation import *
 
-# ─── Scenario metadata ───────────────────────────────────────────────────
 
 SCENARIO_ICONS = {
     "IDLE":         "💤",
@@ -68,7 +58,6 @@ PHASE_LABELS = {
 }
 
 
-# ─── Log capture ──────────────────────────────────────────────────────────
 
 class TUILogHandler(logging.Handler):
     def __init__(self, maxlen=80):
@@ -82,7 +71,6 @@ class TUILogHandler(logging.Handler):
         self.records.append(f"[{color}]{ts} {lvl} {record.getMessage()}[/]")
 
 
-# ─── TUI state ────────────────────────────────────────────────────────────
 
 class ExperimentState:
     def __init__(self, total_iterations: int, scenarios_per_seq: int):
@@ -106,7 +94,6 @@ class ExperimentState:
         self.errors = 0
 
 
-# ─── Layout ───────────────────────────────────────────────────────────────
 
 def build_layout() -> Layout:
     layout = Layout()
@@ -197,7 +184,6 @@ def render_footer(overall_progress: Progress) -> Panel:
     return Panel(overall_progress, style="bright_blue")
 
 
-# ─── Experiment runner with TUI ───────────────────────────────────────────
 
 class SonyExperimentTUI:
     def __init__(self):

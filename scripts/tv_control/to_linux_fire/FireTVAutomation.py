@@ -1,14 +1,3 @@
-#TODO: Fix Timings
-#TODO: Fix IP address and MAC
-
-#DONE (remember for other tvs):
-#TODO: Check navigation sequences after UI updates
-#TODO: Fix any problem with Youtube search
-#TODO: Fix any problem with Tubi search
-#TODO: App Exits
-#TODO: Check if FAST is really FAST
-
-
 import subprocess
 import socket
 import time

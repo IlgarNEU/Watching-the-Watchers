@@ -1,29 +1,9 @@
-"""
-Code Description:
-
-    This code is the third phase of the pipeline. 
-    Once all .pcap files are converted to .csv format with necessary fields extracted,
-    the .csv files are grouped by day, merged into per-day .parquet files.
-    Then the .per-day parquet files are merged into one large merged.parquet file.
-    
-    The reason for step-by-step processing is that the number of .csv files is large and
-    the time required to merge them into one large .parquet file grows as the .csv files are processed.
-    In this step-by-step version, smaller number of .csv files are processed in groups.
-
-
-    Code usage:
-    python3 mergeCsvs.py <folder_name>
-    
-    For example:
-    python3 mergeCsvs.py samsung
-"""
 import sys
 import pandas as pd
 import re
 from pathlib import Path
 from collections import defaultdict
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -36,12 +16,10 @@ class CSVFolderMerger:
         self.input_folder = DATA_CSVS_DIR / folder_name
         self.output_folder = DATA_PARQUETS_DIR / folder_name
         
-        # Verify input folder exists
         if not self.input_folder.is_dir():
             print(f"Error: Input folder not found: {self.input_folder}")
             sys.exit(1)
         
-        # Create output folder if it doesn't exist
         self.output_folder.mkdir(parents=True, exist_ok=True)
 
     def sort_key(self, filename):

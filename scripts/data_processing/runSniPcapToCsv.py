@@ -3,7 +3,6 @@ import subprocess
 from pathlib import Path
 import os
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -17,12 +16,10 @@ def run_pcap_to_csv(folder_name):
     input_folder = DATA_DIR / folder_name
     csv_folder = CSV_DIR / folder_name
     
-    # Verify paths exist
     if not input_folder.is_dir():
         print(f"Folder not found: {input_folder}")
         sys.exit(1)
     
-    # Create CSV output folder if it doesn't exist
     csv_folder.mkdir(parents=True, exist_ok=True)
 
     print(f"Scanning folder: {input_folder}")

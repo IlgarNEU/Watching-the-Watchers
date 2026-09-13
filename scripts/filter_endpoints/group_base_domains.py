@@ -2,7 +2,6 @@ import pandas as pd
 import sys
 from pathlib import Path
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -43,16 +42,13 @@ if __name__ == "__main__":
     
     folder_name = sys.argv[1]
     
-    # Construct paths
     input_file = DATA_FILTERING_RESULTS_DIR / folder_name / "well-known-services-filtered.csv"
     output_file = DATA_FILTERING_RESULTS_DIR / folder_name / "grouped_by_base.csv"
     
-    # Verify input file exists
     if not input_file.exists():
         print(f"Error: Input file not found: {input_file}")
         sys.exit(1)
     
-    # Create output directory if it doesn't exist
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     group_domains(input_file, output_file)

@@ -1,12 +1,3 @@
-#TODO: FIX THE IP ADDRESS
-#TODO: TEST HDMI AND SCREENCAST
-#TODO: Write ScreenCast
-#TODO: AFTER LAUNCH, ADD MORE TIME, LIKE 30 SECONDS
-#TODO: Clear Youtube Watch History
-#TODO: Fix times of delays, etc
-#TODO: Fix Youtube Search
-#TODO: ADD delay for selects
-
 import asyncio
 import aiohttp
 import logging

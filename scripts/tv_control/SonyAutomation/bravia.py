@@ -1,22 +1,4 @@
 #!/usr/bin/env python3
-"""
-Sony Bravia BF1 Remote Control (Simple IP Protocol / SSIP)
-===========================================================
-Controls Sony Bravia professional displays over the Simple IP Protocol.
-TCP port 20060, fixed 24-byte ASCII messages, no authentication.
-
-Setup on TV:
-  Settings → Network & Internet → Home network → IP control →
-            Simple IP control: ON
-  Settings → Network & Internet → Remote device settings →
-            Control remotely: ON   (for Wake-on-LAN)
-
-Zero external dependencies — uses only Python stdlib.
-
-Usage:
-    python bravia.py <command> [args]
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -24,55 +6,43 @@ import socket
 import sys
 import time
 
-# ─── Configuration ──────────────────────────────────────────────────────────
 
-TV_IP = "192.168.14.133"           # Update to your BF1's IP
-TV_PORT = 20060                  # SSIP fixed port
-TV_MAC = "58:18:62:30:2F:EB"     # Get from TV: View Network Status
+TV_IP = "192.168.14.133"           
+TV_PORT = 20060                  
+TV_MAC = "58:18:62:30:2F:EB"     
 
-REQUEST_TIMEOUT = 5              # Per-socket TCP timeout in seconds
-
-
-# ─── SSIP Protocol Constants ────────────────────────────────────────────────
-# Each message is exactly 24 bytes:
-#   [0-1] Header  : "*S"          (0x2A 0x53)
-#   [2]   Type    : C/E/A/N
-#   [3-6] Command : 4 ASCII chars
-#   [7-22]Param   : 16 ASCII chars (or # for enquiry padding)
-#   [23]  Footer  : LF (0x0A)
-
-ENQ_PARAM = "#" * 16             # Used in Enquiry messages
-SUCCESS_PARAM = "0" * 16         # Answer-Success
-ERROR_PARAM = "F" * 16           # Answer-Error
-NOT_FOUND_PARAM = "N" * 16       # Answer-Not-Found (e.g. setInput to missing port)
+REQUEST_TIMEOUT = 5              
 
 
-# ─── IR Commands (used with setIrccCode) ───────────────────────────────────
-# Source: pro-bravia.sony.net Simple IP control spec.
-# Each parameter is right-aligned numeric padded with zeros to 16 chars.
+
+
+ENQ_PARAM = "#" * 16             
+SUCCESS_PARAM = "0" * 16         
+ERROR_PARAM = "F" * 16           
+NOT_FOUND_PARAM = "N" * 16       
+
+
+
 
 IRCC_PARAMS = {
-    # Navigation
     "display":      "0000000000000005",
     "home":         "0000000000000006",
     "options":      "0000000000000007",
     "return":       "0000000000000008",
-    "back":         "0000000000000008",   # alias for return
+    "back":         "0000000000000008",   
     "up":           "0000000000000009",
     "down":         "0000000000000010",
     "right":        "0000000000000011",
     "left":         "0000000000000012",
     "confirm":      "0000000000000013",
-    "ok":           "0000000000000013",   # alias for confirm
-    "center":       "0000000000000013",   # alias for confirm
+    "ok":           "0000000000000013",   
+    "center":       "0000000000000013",   
 
-    # Color buttons
     "red":          "0000000000000014",
     "green":        "0000000000000015",
     "yellow":       "0000000000000016",
     "blue":         "0000000000000017",
 
-    # Numbers
     "num1":         "0000000000000018",
     "num2":         "0000000000000019",
     "num3":         "0000000000000020",
@@ -84,16 +54,13 @@ IRCC_PARAMS = {
     "num9":         "0000000000000026",
     "num0":         "0000000000000027",
 
-    # Audio / volume
     "vol_up":       "0000000000000030",
     "vol_down":     "0000000000000031",
     "mute":         "0000000000000032",
 
-    # Channel
     "ch_up":        "0000000000000033",
     "ch_down":      "0000000000000034",
 
-    # Misc
     "subtitle":     "0000000000000035",
     "dot":          "0000000000000038",
     "picture_off":  "0000000000000050",
@@ -101,9 +68,8 @@ IRCC_PARAMS = {
     "jump":         "0000000000000062",
     "sync_menu":    "0000000000000076",
 
-    # Transport
     "forward":      "0000000000000077",
-    "ff":           "0000000000000077",   # alias
+    "ff":           "0000000000000077",   
     "play":         "0000000000000078",
     "rewind":       "0000000000000079",
     "prev":         "0000000000000080",
@@ -113,7 +79,6 @@ IRCC_PARAMS = {
     "flash_plus":   "0000000000000086",
     "flash_minus":  "0000000000000087",
 
-    # Power / system
     "tv_power":     "0000000000000098",
     "audio":        "0000000000000099",
     "input":        "0000000000000101",
@@ -123,20 +88,17 @@ IRCC_PARAMS = {
     "picture_mode": "0000000000000110",
     "demo_surround": "0000000000000121",
 
-    # Inputs (direct HDMI selection)
     "hdmi1":        "0000000000000124",
     "hdmi2":        "0000000000000125",
     "hdmi3":        "0000000000000126",
     "hdmi4":        "0000000000000127",
 
-    # Menus
     "action_menu":  "0000000000000129",
-    "menu":         "0000000000000129",   # alias
+    "menu":         "0000000000000129",   
     "help":         "0000000000000130",
 }
 
 
-# ─── Wake-on-LAN ────────────────────────────────────────────────────────────
 
 def send_wol(mac: str, broadcast: str = "255.255.255.255", port: int = 9):
     mac_bytes = bytes.fromhex(mac.replace(":", "").replace("-", ""))
@@ -146,7 +108,6 @@ def send_wol(mac: str, broadcast: str = "255.255.255.255", port: int = 9):
         s.sendto(magic, (broadcast, port))
 
 
-# ─── SSIP Transport ─────────────────────────────────────────────────────────
 
 def _build_msg(msg_type: str, command: str, parameter: str) -> bytes:
     """Build a 24-byte SSIP message."""
@@ -175,15 +136,13 @@ def _parse_msg(raw: bytes) -> tuple[str, str, str] | None:
 
 def ssip_send(msg_type: str, command: str, parameter: str,
               expect_command: str | None = None) -> tuple[str, str, str] | None:
-    """Send a SSIP message, return the first matching Answer (A) reply.
-    Notify (N) messages are skipped. Returns (type, command, param) or None."""
+
     payload = _build_msg(msg_type, command, parameter)
 
     try:
         with socket.create_connection((TV_IP, TV_PORT), timeout=REQUEST_TIMEOUT) as s:
             s.sendall(payload)
 
-            # Read responses, skipping any Notify (N) messages
             buf = b""
             deadline = time.monotonic() + REQUEST_TIMEOUT
             target_cmd = expect_command or command
@@ -198,7 +157,6 @@ def ssip_send(msg_type: str, command: str, parameter: str,
                     break
                 buf += chunk
 
-                # Process full 24-byte messages
                 while len(buf) >= 24:
                     msg = buf[:24]
                     buf = buf[24:]
@@ -206,13 +164,10 @@ def ssip_send(msg_type: str, command: str, parameter: str,
                     if parsed is None:
                         continue
                     mtype, mcmd, mparam = parsed
-                    # Skip Notify messages
                     if mtype == "N":
                         continue
-                    # Return the matching Answer
                     if mtype == "A" and mcmd == target_cmd:
                         return parsed
-                    # Any other Answer: return it (may be relevant)
                     if mtype == "A":
                         return parsed
             return None
@@ -227,7 +182,6 @@ def _is_success(parsed) -> bool:
     return parsed[2] == SUCCESS_PARAM
 
 
-# ─── Commands ───────────────────────────────────────────────────────────────
 
 def cmd_on(_args):
     """Wake TV via WoL, then send setPowerStatus active."""
@@ -237,7 +191,6 @@ def cmd_on(_args):
             send_wol(TV_MAC, broadcast="192.168.14.255")
             time.sleep(0.5)
         print("✅ WoL packets sent.")
-        # Give the TV time to bring its TCP server up
         time.sleep(2)
 
     parsed = ssip_send("C", "POWR", "0000000000000001")
@@ -300,7 +253,6 @@ def cmd_status(_args):
 
 
 def cmd_key(args):
-    """Send an IRCC IR-style key code via setIrccCode."""
     name = args.key.lower().replace("-", "_")
     param = IRCC_PARAMS.get(name)
     if param is None:
@@ -330,9 +282,7 @@ def cmd_set_input(args):
     if spec.startswith("hdmi"):
         port_str = "".join(c for c in spec if c.isdigit()) or "1"
         port = int(port_str)
-        # Type 1 = HDMI; param = "0000000" + type + "0000" + port (4 digits)
         param = f"00000001{port:04d}".rjust(16, "0")
-        # Spec format: "0000000{type:1}0000{port:4}" → 16 chars total
         param = f"0000000{1}0000{port:04d}"
         if len(param) != 16:
             print(f"⚠️  Built bad parameter: {param!r}")
@@ -446,7 +396,6 @@ def cmd_broadcast(_args):
     print(f"Broadcast: {addr}")
 
 
-# ─── CLI ────────────────────────────────────────────────────────────────────
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(

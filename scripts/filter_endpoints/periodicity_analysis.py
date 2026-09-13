@@ -10,7 +10,6 @@ import argparse
 import sys
 warnings.filterwarnings("ignore")
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -26,14 +25,12 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    # Required: folder name
     parser.add_argument(
         "folder_name",
         help="TV model folder name (e.g., samsung)",
         metavar="FOLDER"
     )
 
-    # Optional: custom filenames
     parser.add_argument(
         "--domains-file",
         type=str,
@@ -49,7 +46,6 @@ def parse_arguments():
         metavar="FILE"
     )
 
-    # Thresholds (optional, with defaults)
     parser.add_argument(
         "--autocorr-threshold",
         type=float,
@@ -135,7 +131,6 @@ def init_config(args):
 
     folder_name = args.folder_name
 
-    # Construct paths
     DOMAINS_CSV = DATA_FILTERING_RESULTS_DIR / folder_name / args.domains_file
     TRAFFIC_DIR = DATA_INDIVIDUAL_DOMAINS_DIR / folder_name
     TIMING_CSV = DATA_TIMINGS_DIR / folder_name / args.timing_file

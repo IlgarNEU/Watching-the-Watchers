@@ -17,15 +17,7 @@ DATA_VOLUME_LOGS_DIR = PROJECT_ROOT / "data" / "volume_logs"
 
 class TrafficVisualization:
     def __init__(self, csv_file, mac='04:e4:b6:74:dd:94'):
-        """
-        Initialize with single MAC or list of MACs.
-        
-        Args:
-            csv_file: Path to CSV file
-            mac: Single MAC address (str) or list of MAC addresses
-        """
         self.csv_file = csv_file
-        # Convert single MAC to list for consistent handling
         if isinstance(mac, str):
             self.macs = [mac]
         else:
@@ -43,7 +35,6 @@ class TrafficVisualization:
             if col not in df.columns:
                 raise ValueError(f"Missing column: {col}")
 
-        # Filter for any of the device MACs
         df = df[(df['src_mac'].isin(self.macs)) | (df['dst_mac'].isin(self.macs))]
         if df.empty:
             print(f"NO PACKETS FOUND INVOLVING ANY OF THESE MACS: {self.macs}")
@@ -83,7 +74,6 @@ class TrafficVisualization:
             'macs_found':       list(df['src_mac'].unique()) + list(df['dst_mac'].unique()),
         }
 
-        # Pretty-print to console
         print(f"\n{'='*55}")
         print(f"  Traffic Volume Report — {domain}")
         print(f"{'='*55}")
@@ -106,7 +96,6 @@ class TrafficVisualization:
         print(f"    Packets   : {stats['total_packets']:>15,}")
         print(f"{'='*55}\n")
 
-        # Save to log file
         log_dir = Path(log_dir)
         log_dir.mkdir(parents=True, exist_ok=True)
         safe_domain = domain.replace("/", "_").replace(" ", "_")
@@ -313,15 +302,7 @@ class TrafficVisualization:
 
 class TrafficCDFAnalyzerWithLog:
     def __init__(self, csv_file, tv_mac='04:e4:b6:74:dd:94'):
-        """
-        Initialize with single MAC or list of MACs.
-        
-        Args:
-            csv_file: Path to CSV file
-            tv_mac: Single MAC address (str) or list of MAC addresses
-        """
         self.csv_file = csv_file
-        # Convert single MAC to list for consistent handling
         if isinstance(tv_mac, str):
             self.tv_macs = [tv_mac]
         else:
@@ -493,8 +474,7 @@ class TrafficCDFAnalyzerWithLog:
 
 
 if __name__ == "__main__":
-    # Arguments passed from manager script
-    input_path = Path(sys.argv[1])              # Directory containing domain CSVs
+    input_path = Path(sys.argv[1])              
     start_time = sys.argv[2]
     end_time = sys.argv[3]
     action_name = sys.argv[4]
@@ -502,7 +482,6 @@ if __name__ == "__main__":
     device_name = sys.argv[6] if len(sys.argv) > 6 else "unknown"
     mac = sys.argv[7] if len(sys.argv) > 7 else "04:e4:b6:74:dd:94"
     
-    # Support comma-separated list of MACs
     if ',' in mac:
         macs = [m.strip() for m in mac.split(',')]
     else:
@@ -517,6 +496,5 @@ if __name__ == "__main__":
     analyzer = TrafficVisualization(str(all_acr_csv), macs)
     stats = analyzer.analyze_traffic_volume(domain_name, start_time, end_time)
     
-    # Output stats as JSON on last line for wrapper script to capture
     if stats:
         print(json.dumps(stats))

@@ -1,30 +1,7 @@
-"""
-Code Description:
-
-    This code is the fourth phase of the pipeline. 
-    Once we have merged.parquet file for a smart-TV,
-    this script creates ip_to_dns_mapping.csv file. 
-
-    This ip_to_dns_mapping.csv is created using two fields from the network traces: DNS and SNI;
-    All IP addresses are first mapped to DNS names, then on the second pass IPs are mapped to SNI names.
-
-    Once the ip_to_dns_mapping.csv file is ready,
-    the timing.csv file is read (which contains the timing for each experimental scenario with a smart TV),
-    and the list of domains contacted during each experiment is saved as a separate .csv file.
-    The unmapped IPs contacted during each experiment is also saved as "_unmapped.csv" file.
-
-    Code usage:
-    python3 domain_analysis_by_ip_and_sni.py <folder_name>
-    
-    For example:
-    python3 domain_analysis_by_ip_and_sni.py samsung
-"""
-
 import pandas as pd 
 import sys
 from pathlib import Path
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -33,7 +10,6 @@ DATA_PARQUETS_DIR = PROJECT_ROOT / "data" / "parquets"
 DATA_IP_DNS_MAPPINGS_DIR = PROJECT_ROOT / "data" / "ip_to_dns_mappings"
 DATA_DOMAIN_LISTS_DIR = PROJECT_ROOT / "data" / "domain_list_csvs"
 
-# TV name to local IP mapping
 TV_IP_MAPPING = {
     "tizen": "192.168.14.117",
     "webos": "192.168.14.118",
@@ -63,7 +39,6 @@ class IPToDNSMapper:
         print(f"Available columns: {list(self.df.columns)}")
 
     def build_ip_to_dns_mapping(self):
-        """One-time pass over all DNS rows to build IP → domain mapping."""
         dns_rows = self.df[
             self.df['ans_data'].notna() & (self.df['ans_data'] != '') &
             self.df['ans_name'].notna() & (self.df['ans_name'] != '')
@@ -79,8 +54,6 @@ class IPToDNSMapper:
         print(f"Built mapping for {len(self.ip_to_domains)} unique IPs")
 
     def build_ip_to_sni_mapping(self):
-        """One-time pass over all SNI rows to build IP → SNI domain mapping."""
-        # FIX: Check if 'sni' column exists before processing
         if 'sni' not in self.df.columns:
             print("Warning: 'sni' column not found in parquet data. Skipping SNI mapping.")
             print(f"Available columns are: {list(self.df.columns)}")
@@ -141,7 +114,6 @@ class IPToDNSMapper:
         return domains, unmapped
 
     def save_mapping(self, output_file):
-        """Optionally persist the mapping so you don't rebuild it next run."""
         rows = [
             {"ip": ip, "domain": domain}
             for ip, domains in self.ip_to_domains.items()
@@ -151,14 +123,12 @@ class IPToDNSMapper:
         print(f"Saved mapping to {output_file}")
 
     def load_mapping(self, mapping_file):
-        """Load a previously saved mapping instead of rebuilding."""
         df = pd.read_csv(mapping_file)
         for _, row in df.iterrows():
             self.ip_to_domains.setdefault(row['ip'], set()).add(row['domain'])
         print(f"Loaded mapping for {len(self.ip_to_domains)} unique IPs")
 
     def setup(self, mapping_file):
-        """Load parquet and either load existing mapping or build a new one."""
         self.load_data()
         if mapping_file.exists():
             self.load_mapping(mapping_file)
@@ -177,7 +147,6 @@ if __name__ == "__main__":
     
     folder_name = sys.argv[1]
     
-    # Get TV IP from mapping, or use provided IP as override
     if len(sys.argv) > 2:
         tv_local_ip = sys.argv[2]
         print(f"Using custom TV IP: {tv_local_ip}")
@@ -188,13 +157,11 @@ if __name__ == "__main__":
         print(f"Warning: TV model '{folder_name}' not found in mapping. Using default IP.")
         tv_local_ip = "192.168.14.114"
     
-    # Construct paths
     timing_csv = DATA_TIMINGS_DIR / folder_name / "timing.csv"
     merged_parquet = DATA_PARQUETS_DIR / folder_name / "merged_all.parquet"
     ip_dns_mapping = DATA_IP_DNS_MAPPINGS_DIR / folder_name / "ip_to_dns_mapping.csv"
     output_dir = DATA_DOMAIN_LISTS_DIR / folder_name
     
-    # Verify input files exist
     if not timing_csv.exists():
         print(f"Error: Timing file not found: {timing_csv}")
         sys.exit(1)
@@ -202,10 +169,8 @@ if __name__ == "__main__":
         print(f"Error: Parquet file not found: {merged_parquet}")
         sys.exit(1)
     
-    # Create output directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create mapping directory if it doesn't exist
     ip_dns_mapping.parent.mkdir(parents=True, exist_ok=True)
 
     mapper = IPToDNSMapper(merged_parquet)

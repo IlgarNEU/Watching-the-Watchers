@@ -15,7 +15,6 @@ DATA_TYPE_DIRS = {
     "csv": "data/individual_domain_csvs",
 }
 
-# Replace Google Drive folder IDs with Zenodo record IDs
 DATA_FOLDERS = {
     "pcaps": {
         "test_pcaps": {
@@ -33,57 +32,57 @@ DATA_FOLDERS = {
             "description": "WebOS parquets datasets"
         },
         "roku_roku": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22698164",
             "description": "Roku (Roku) parquets datasets"
         },
         "roku_tcl": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22708775",
             "description": "Roku (TCL) parquets datasets"
         },
         "google": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22715571",
             "description": "Google TV parquets datasets"
         },
         "fire": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22709549",
             "description": "Fire TV parquets datasets"
         },
         "smartcast": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22726000",
             "description": "SmartCast parquets datasets"
         },
         "xumo": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22726032",
             "description": "XUMO parquets datasets"
         },
         "google_sony_non_acr": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22726049",
             "description": "Google (Sony Non-ACR) parquets datasets"
         },
         "google_hisense": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22726070",
             "description": "Google (Hisense) parquets datasets"
         },
         "google_tcl": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22715547",
             "description": "Google (TCL) parquets datasets"
         },
     },
     "csv": {
         "tizen": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22733423",
             "description": "Tizen csv datasets"
         },
         "webos": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22733487",
             "description": "WebOS csv datasets"
         },
         "roku_roku": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22733497",
             "description": "Roku (Roku) csv datasets"
         },
         "roku_tcl": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22733520",
             "description": "Roku (TCL) csv datasets"
         },
         "google": {
@@ -91,22 +90,21 @@ DATA_FOLDERS = {
             "description": "Google TV csv datasets"
         },
         "fire": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22733576",
             "description": "Fire TV csv datasets"
         },
         "smartcast": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22733542",
             "description": "SmartCast csv datasets"
         }
     },
 }
 
-# Zenodo API endpoint
+
 ZENODO_API_URL = "https://zenodo.org/api/records"
 
 
 def normalize_sources(record_id_field):
-    """Normalize record_id field to list of source dicts."""
     if isinstance(record_id_field, str):
         return [{"id": record_id_field, "label": None}]
 
@@ -128,19 +126,16 @@ def normalize_sources(record_id_field):
 
 
 def is_configured(record_id_field):
-    """Check if record ID is configured (not placeholder)."""
     sources = normalize_sources(record_id_field)
     return all(not s["id"].startswith("REPLACE_WITH") for s in sources)
 
 
 def download_file(file_url, output_path, filename):
-    """Download a single file from Zenodo."""
     try:
         print(f"  Downloading {filename}...", end=" ", flush=True)
         response = requests.get(file_url, stream=True, timeout=30)
         response.raise_for_status()
         
-        # Get file size
         total_size = int(response.headers.get('content-length', 0))
         downloaded = 0
         
@@ -160,9 +155,7 @@ def download_file(file_url, output_path, filename):
 
 
 def download_from_zenodo(record_id, output_dir):
-    """Download all files from a Zenodo record."""
     try:
-        # Fetch record metadata
         print(f"  Fetching metadata from Zenodo (record {record_id})...", flush=True)
         response = requests.get(f"{ZENODO_API_URL}/{record_id}", timeout=10)
         response.raise_for_status()
@@ -175,10 +168,8 @@ def download_from_zenodo(record_id, output_dir):
         
         print(f"  Found {len(files)} file(s)\n")
         
-        # Create output directory
         output_dir.mkdir(exist_ok=True, parents=True)
         
-        # Download each file
         all_success = True
         for file_info in files:
             file_url = file_info['links']['self']
@@ -220,7 +211,6 @@ def download_tv_datasets(tv_brand, data_type):
     tv_info = DATA_FOLDERS[data_type.lower()][tv_brand.lower()]
     description = tv_info["description"]
 
-    # Check if record ID(s) are configured
     if not is_configured(tv_info["record_id"]):
         print(f"\n✗ ERROR: Zenodo Record ID not configured for '{tv_brand}' ({data_type})")
         print(f"\nPlease update DATA_FOLDERS dict with Zenodo record ID(s):")
@@ -233,7 +223,6 @@ def download_tv_datasets(tv_brand, data_type):
     sources = normalize_sources(tv_info["record_id"])
     multi_source = len(sources) > 1
 
-    # Get the data directory based on data type
     data_dir = PROJECT_ROOT / DATA_TYPE_DIRS[data_type]
     tv_data_dir = data_dir / tv_brand.lower()
     tv_data_dir.mkdir(exist_ok=True, parents=True)
@@ -274,7 +263,6 @@ def download_tv_datasets(tv_brand, data_type):
     print(f"✓ Download completed successfully for {tv_brand}!")
     print("=" * 70)
 
-    # Calculate and display download summary
     all_items = list(tv_data_dir.rglob("*"))
     files = [f for f in all_items if f.is_file()]
     folders = [f for f in all_items if f.is_dir()]
@@ -319,7 +307,6 @@ def list_available_options():
 
 
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser(
         description="Download Zenodo datasets for a specific TV brand and data type",
         formatter_class=argparse.RawDescriptionHelpFormatter,

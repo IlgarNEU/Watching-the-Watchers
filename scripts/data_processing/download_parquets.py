@@ -43,7 +43,6 @@ def download_tv_datasets(tv_brand):
     folder_id = tv_info["folder_id"]
     description = tv_info["description"]
     
-    # Check if folder ID is configured
     if folder_id == f"REPLACE_WITH_{tv_brand.upper()}_FOLDER_ID" or \
        folder_id.startswith("REPLACE_WITH"):
         print(f"\n✗ ERROR: Folder ID not configured for '{tv_brand}'")
@@ -147,18 +146,15 @@ def main():
     
     args = parser.parse_args()
     
-    # If --list flag, show available brands
     if args.list:
         list_available_brands()
         return 0
     
-    # If no brand specified, show help
     if not args.tv_brand:
         parser.print_help()
         list_available_brands()
         return 1
     
-    # Download for specified brand
     success = download_tv_datasets(args.tv_brand)
     return 0 if success else 1
 

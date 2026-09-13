@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 import argparse
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -36,7 +35,6 @@ def analyze_all_domains(parquet_path, domain_list_csv, output_folder, mac=None):
         acr_ips = set()
         matched_rows = pd.DataFrame()
 
-        # --- DNS matching ---
         if "qry_name" in df.columns:
             acr_dns_df = df[df["qry_name"].str.contains(domain, case=False, na=False)]
             if not acr_dns_df.empty:
@@ -51,7 +49,6 @@ def analyze_all_domains(parquet_path, domain_list_csv, output_folder, mac=None):
         else:
             print("  Column 'qry_name' not found — skipping DNS matching.")
 
-        # --- SNI matching ---
         if "sni" in df.columns:
             acr_sni_df = df[df["sni"].str.contains(domain, case=False, na=False)]
             if not acr_sni_df.empty:
@@ -68,7 +65,6 @@ def analyze_all_domains(parquet_path, domain_list_csv, output_folder, mac=None):
             print(f"  No matches found for '{domain}' via DNS or SNI.")
             continue
 
-        # --- Related traffic by IP ---
         if acr_ips:
             related_df = df[(df["src_ip"].isin(acr_ips)) | (df["dst_ip"].isin(acr_ips))]
             print(f"  Found {len(related_df)} related rows via {len(acr_ips)} IPs")
@@ -90,7 +86,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--domain-file",
-        default="frequent_domains_top_filtered.csv",
+        default="final_list.csv",
         help="Domain CSV filename in filtering_results folder (default: Opt-in filter_filtered.csv)"
     )
     parser.add_argument(
@@ -105,12 +101,10 @@ if __name__ == "__main__":
     folder_name = args.folder_name
     domain_filename = args.domain_file
     
-    # Construct paths
     parquet_path = DATA_PARQUETS_DIR / folder_name / "merged_all.parquet"
     domain_list_csv = DATA_FILTERING_RESULTS_DIR / folder_name / domain_filename
     output_folder = DATA_INDIVIDUAL_DOMAINS_DIR / folder_name
     
-    # Verify input files exist
     if not parquet_path.exists():
         print(f"Error: Parquet file not found: {parquet_path}")
         sys.exit(1)
@@ -118,7 +112,6 @@ if __name__ == "__main__":
         print(f"Error: Domain list file not found: {domain_list_csv}")
         sys.exit(1)
     
-    # Create output directory if it doesn't exist
     output_folder.mkdir(parents=True, exist_ok=True)
     
     analyze_all_domains(parquet_path, domain_list_csv, output_folder, args.mac)

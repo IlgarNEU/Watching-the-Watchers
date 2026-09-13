@@ -4,7 +4,6 @@ from pathlib import Path
 import argparse
 import pandas as pd
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -13,8 +12,6 @@ DATA_INDIVIDUAL_DOMAINS_DIR = PROJECT_ROOT / "data" / "individual_domain_csvs"
 DATA_PERIODICITY_RESULTS_DIR = PROJECT_ROOT / "data" / "periodicity_results"
 DATA_FILTERING_RESULTS_DIR = PROJECT_ROOT / "data" / "filtering_results"
 
-# TV name to MAC address mapping
-# Format: Single MAC as string, or multiple MACs as list
 TV_MAC_MAPPING = {
     "tizen": "04:e4:b6:74:dd:94",
     "webos": "00:a1:59:8f:ab:38",
@@ -25,22 +22,29 @@ TV_MAC_MAPPING = {
     "smartcast": "14:c6:7d:15:31:56",
     "xumo": "b8:41:d9:e4:f8:ed",
     "google_tcl": "48:87:b8:ab:34:37",
-    
-    # Example: Device with multiple MACs
-    # "samsung": ["04:e4:b6:74:dd:94", "a8:5e:60:12:34:56"],
 }
+
+# Default domain to fall back on (per TV model / folder_name) when no
+# domain list file can be found at all (neither the primary periodicity
+# file nor the fallback filtering file exists / is non-empty).
+DEFAULT_DOMAIN_MAPPING = {
+    "tizen": "acr-us-prd.samsungcloud.tv",
+    "webos": "tkacr",
+    "roku_roku": "scribe.logs.roku.com",
+    "roku_tcl": "scribe.logs.roku.com",
+    "google": "216.183.117.80",
+    "fire": "gateway-ink.amazon.com",
+    "smartcast": "kinesis.us-west-2.amazonaws.com"
+}
+GENERIC_DEFAULT_DOMAIN = "acr-us-prd.samsungcloud.tv"
+
+
+def get_default_domain(folder_name):
+    """Return the default domain name for a given folder_name (TV model)."""
+    return DEFAULT_DOMAIN_MAPPING.get(folder_name, GENERIC_DEFAULT_DOMAIN)
 
 
 def _normalize_mac_addresses(mac_input):
-    """
-    Convert MAC input to comma-separated string for subprocess.
-    
-    Args:
-        mac_input: Single MAC string or list of MAC strings
-        
-    Returns:
-        Comma-separated string of MACs
-    """
     if isinstance(mac_input, str):
         return mac_input
     elif isinstance(mac_input, (list, tuple)):
@@ -50,14 +54,9 @@ def _normalize_mac_addresses(mac_input):
 
 
 def get_domain_list_path(folder_name, primary_file, fallback_file):
-    """
-    Try to use primary file first, fall back to fallback file if primary doesn't exist or is empty.
-    Returns the path to use and a description of which file was selected.
-    """
     primary_path = DATA_PERIODICITY_RESULTS_DIR / folder_name / primary_file
     fallback_path = DATA_FILTERING_RESULTS_DIR / folder_name / fallback_file
-    
-    # Check primary file
+
     if primary_path.exists():
         try:
             df = pd.read_csv(primary_path)
@@ -65,8 +64,7 @@ def get_domain_list_path(folder_name, primary_file, fallback_file):
                 return primary_path, f"Using primary domain list: {primary_file}"
         except Exception as e:
             print(f"Warning: Could not read {primary_file}: {e}")
-    
-    # Fall back to fallback file
+
     if fallback_path.exists():
         try:
             df = pd.read_csv(fallback_path)
@@ -74,18 +72,17 @@ def get_domain_list_path(folder_name, primary_file, fallback_file):
                 return fallback_path, f"Primary domain list not found/empty. Using fallback: {fallback_file}"
         except Exception as e:
             print(f"Warning: Could not read {fallback_file}: {e}")
-    
-    # Neither file exists or both are empty
-    raise FileNotFoundError(
-        f"No valid domain list found. "
-        f"Tried: {primary_path} and {fallback_path}"
+
+    # No usable domain list found. Signal to the caller that it should
+    # fall back to running a single default domain instead of a full list.
+    return None, (
+        f"No domain list found for '{folder_name}' "
+        f"(tried {primary_path} and {fallback_path}). "
+        f"Falling back to default domain."
     )
 
 
 def run_dns_name_analysis(domain_name, csv_path, input_path, script_path, venv_python, folder_name, tv_mac):
-    """
-    Run analysis for a domain across all time periods defined in the CSV.
-    """
     df = pd.read_csv(csv_path)
     for idx, row in df.iterrows():
         run_for_row(idx+1, row, domain_name, input_path, script_path, venv_python, folder_name, tv_mac)
@@ -151,7 +148,6 @@ if __name__ == "__main__":
     
     folder_name = args.folder_name
     
-    # Get TV MAC from mapping, or use provided override
     if args.mac:
         tv_mac = args.mac
         print(f"Using custom TV MAC(s): {tv_mac}")
@@ -163,52 +159,63 @@ if __name__ == "__main__":
         tv_mac = "04:e4:b6:74:dd:94"
         print(f"Warning: TV model '{folder_name}' not found in mapping. Using default MAC.")
     
-    # Get domain list with fallback
-    try:
-        domain_list, domain_list_note = get_domain_list_path(
-            folder_name, 
-            args.domain_file, 
-            args.fallback_domain_file
-        )
-        print(domain_list_note)
-    except FileNotFoundError as e:
-        print(f"ERROR: {e}")
-        sys.exit(1)
+    domain_list, domain_list_note = get_domain_list_path(
+        folder_name,
+        args.domain_file,
+        args.fallback_domain_file
+    )
+    print(domain_list_note)
     
-    # Construct paths
     timing_csv = DATA_TIMINGS_DIR / folder_name / args.timing_file
     input_path = DATA_INDIVIDUAL_DOMAINS_DIR / folder_name
     script_path = SCRIPT_DIR / args.script
     venv_python = SCRIPTS_FOLDER / "venv" / "bin" / "python"
     
-    # Validate input files exist
-    for path_arg, path_name in [
+    required_paths = [
         (timing_csv, "timing CSV"),
-        (domain_list, "domain list"),
         (input_path, "input domain CSVs directory"),
         (script_path, "analysis script"),
         (venv_python, "venv python")
-    ]:
+    ]
+    if domain_list is not None:
+        required_paths.append((domain_list, "domain list"))
+    
+    for path_arg, path_name in required_paths:
         if not path_arg.exists():
             print(f"ERROR: {path_name} not found: {path_arg}")
             sys.exit(1)
     
     print(f"\n{'='*60}")
-    print(f"Processing domains from: {domain_list}")
+    print(f"Processing domains from: {domain_list if domain_list is not None else '(default domain)'}")
     print(f"Timing file: {timing_csv}")
     print(f"Input directory: {input_path}")
     print(f"Script: {script_path}")
     print(f"TV MAC(s): {tv_mac}")
     print(f"{'='*60}\n")
     
-    dmlist = pd.read_csv(domain_list)
-    total = len(dmlist)
     successful = 0
     failed = 0
     
-    for idx, rw in dmlist.iterrows():
-        domain_name = str(rw["domain"])
-        print(f"[{idx+1}/{total}] Processing domain: {domain_name}...", end=" ", flush=True)
+    if domain_list is not None:
+        dmlist = pd.read_csv(domain_list)
+        total = len(dmlist)
+        
+        for idx, rw in dmlist.iterrows():
+            domain_name = str(rw["domain"])
+            print(f"[{idx+1}/{total}] Processing domain: {domain_name}...", end=" ", flush=True)
+            try:
+                run_dns_name_analysis(domain_name, timing_csv, input_path, script_path, venv_python, folder_name, tv_mac)
+                print("✓")
+                successful += 1
+            except Exception as e:
+                print(f"✗")
+                failed += 1
+    else:
+        # No domain list available at all: fall back to a single default
+        # domain determined by folder_name.
+        domain_name = get_default_domain(folder_name)
+        total = 1
+        print(f"[1/1] Processing default domain: {domain_name}...", end=" ", flush=True)
         try:
             run_dns_name_analysis(domain_name, timing_csv, input_path, script_path, venv_python, folder_name, tv_mac)
             print("✓")

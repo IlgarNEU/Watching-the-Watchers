@@ -3,18 +3,16 @@ import sys
 from pathlib import Path
 import argparse
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
 DATA_FILTERING_RESULTS_DIR = PROJECT_ROOT / "data" / "filtering_results"
 
-FULL_DOMAIN_COL = "domain"   # Column name in the full-domains CSV
-BASE_DOMAIN_COL = "domain"   # Column name in the base-domains CSV
+FULL_DOMAIN_COL = "domain"   
+BASE_DOMAIN_COL = "analyzed_domain"   
 
 
 def load_base_domains(filepath: Path, col: str) -> set[str]:
-    """Return a set of base domain strings, lowercased and stripped."""
     bases = set()
     with open(filepath, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -26,12 +24,6 @@ def load_base_domains(filepath: Path, col: str) -> set[str]:
 
 
 def matches_any_base(domain: str, bases: set[str]) -> bool:
-    """
-    Return True if `domain` ends with any base domain.
-    Handles both:
-      - exact match          (example.com  == example.com)
-      - subdomain match      (sub.example.com ends with .example.com)
-    """
     d = domain.strip().lower()
     for base in bases:
         if d == base or d.endswith("." + base):
@@ -54,7 +46,7 @@ def main():
     )
     parser.add_argument(
         "--base-domains",
-        default="Opt-in filter_filtered.csv",
+        default="frequent_domains_top_filtered.csv",
         help="Base domains CSV filename (default: Opt-in filter_filtered.csv)"
     )
     parser.add_argument(
@@ -66,19 +58,16 @@ def main():
     
     folder_name = args.folder_name
     
-    # Construct paths
     full_domains_path = DATA_FILTERING_RESULTS_DIR / folder_name / args.full_domains
     base_domains_path = DATA_FILTERING_RESULTS_DIR / folder_name / args.base_domains
     output_path = DATA_FILTERING_RESULTS_DIR / folder_name / args.output
     
-    # Verify input files exist
     if not full_domains_path.exists():
         sys.exit(f"ERROR: Full domains file not found: {full_domains_path}")
     
     if not base_domains_path.exists():
         sys.exit(f"ERROR: Base domains file not found: {base_domains_path}")
     
-    # Load base domains
     try:
         bases = load_base_domains(base_domains_path, BASE_DOMAIN_COL)
     except KeyError:
@@ -89,7 +78,6 @@ def main():
     print(f"Base domains: {base_domains_path}")
     print(f"Output: {output_path}\n")
 
-    # Stream full-domains CSV, writing matches to output
     matched = 0
     try:
         with (

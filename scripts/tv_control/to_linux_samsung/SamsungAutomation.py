@@ -1,15 +1,3 @@
-#TODO: Fix Timings
-#TODO: Fix IP address and MAC
-
-#DONE (remember for other tvs):
-#TODO: Channel fix after custom for later experiments for normal channel and wiseworse
-#TODO: Fix any problem with Youtube search
-#TODO: Fix any problem with Tubi search 
-#TODO: App Exits
-#TODO: Check if FAST is really FAST
-
-
-
 from samsungtvws import SamsungTVWS
 from wakeonlan import send_magic_packet
 import logging

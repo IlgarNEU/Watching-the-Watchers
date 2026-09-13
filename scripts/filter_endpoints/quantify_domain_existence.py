@@ -31,7 +31,7 @@ def quantify_domain_presence(timing_csv, base_domain_csv, domain_list_dir, outpu
         end_time    = str(row['end_time'])
 
         # NO underscores between components - same as original
-        domain_file = domain_list_dir / f"{action_name}{start_time}{end_time}.csv"
+        domain_file = domain_list_dir / f"{action_name}_{start_time}_{end_time}.csv"
 
         if not domain_file.exists():
             print(f"Warning: missing file for {action_name} {start_time} {end_time}")

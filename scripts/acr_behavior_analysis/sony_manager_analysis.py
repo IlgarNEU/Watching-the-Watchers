@@ -4,7 +4,6 @@ from pathlib import Path
 import argparse
 import pandas as pd
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -13,9 +12,6 @@ DATA_INDIVIDUAL_DOMAINS_DIR = PROJECT_ROOT / "data" / "individual_domain_csvs"
 
 
 def run_dns_name_analysis(domain_name, timing_csv, input_path, script_path, venv_python, folder_name):
-    """
-    Run analysis for a domain across all time periods defined in the CSV.
-    """
     df = pd.read_csv(timing_csv)
     print(f"Processing {len(df)} time periods...\n")
     
@@ -74,13 +70,11 @@ if __name__ == "__main__":
     folder_name = args.folder_name
     domain_name = args.domain
     
-    # Construct paths
     timing_csv = DATA_TIMINGS_DIR / folder_name / args.timing_file
     input_path = DATA_INDIVIDUAL_DOMAINS_DIR / folder_name
     script_path = SCRIPT_DIR / args.script
     venv_python = SCRIPTS_FOLDER / "venv" / "bin" / "python"
     
-    # Verify input files exist
     for path_arg, path_name in [
         (timing_csv, "timing CSV"),
         (input_path, "input directory"),

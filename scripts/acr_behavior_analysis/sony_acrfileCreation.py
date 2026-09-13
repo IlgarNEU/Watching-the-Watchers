@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 import argparse
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -17,12 +16,6 @@ class AcrTrafficAnalyzer:
         self.output_csv = output_csv
 
     def analyze_acr_traffic(self, target_ips):
-        """
-        Analyze traffic to/from specific IPs.
-        
-        Args:
-            target_ips: List of IP addresses to search for
-        """
         df = pd.read_parquet(self.input_parquet)
         print(f"Read the merged parquet: {len(df)} rows")
         df.columns = [c.strip().lower() for c in df.columns]
@@ -69,19 +62,15 @@ if __name__ == "__main__":
     folder_name = args.folder_name
     target_ips = args.ips
     
-    # Generate output filename from IP(s)
     ip_filename = "_".join(target_ips)
     
-    # Construct paths
     merged_all_parquet = DATA_PARQUETS_DIR / folder_name / "merged_all.parquet"
     output_csv = DATA_INDIVIDUAL_DOMAINS_DIR / folder_name / f"{ip_filename}.csv"
     
-    # Verify input file exists
     if not merged_all_parquet.exists():
         print(f"Error: Parquet file not found: {merged_all_parquet}")
         sys.exit(1)
     
-    # Delete existing output file if it exists
     if output_csv.exists():
         output_csv.unlink()
         print(f"Deleted existing file: {output_csv}")

@@ -1,25 +1,4 @@
 #!/usr/bin/env python3
-"""
-Sony Bravia REST API Remote Control
-=====================================
-Controls Sony Bravia consumer/Google TV displays over the REST API.
-HTTP port 80, JSON-RPC style, authenticated via Pre-Shared Key (PSK).
-
-Tested on: KD-32W830K and similar consumer Bravia / Google TV models.
-(For professional BF1 displays using SSIP/TCP 20060, use the original script.)
-
-Setup on TV:
-  Settings → Device Preferences → IP control → Simple IP control: ON
-  Settings → Device Preferences → IP control → Pre-Shared Key: set to e.g. 0000
-  Settings → Device Preferences → About → Remote device settings →
-            Control remotely: ON   (for Wake-on-LAN)
-
-Requires: requests  (pip install requests)
-
-Usage:
-    python bravia.py <command> [args]
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -33,17 +12,14 @@ except ImportError:
     print("❌ Missing dependency: pip install requests")
     sys.exit(1)
 
-# ─── Configuration ──────────────────────────────────────────────────────────
 
-TV_IP   = "192.168.14.140"        # Update to your TV's IP
-TV_MAC  = "88:C9:E8:78:BE:7B"    # From TV or curl getSystemInformation
-TV_PSK  = "0000"                  # Pre-Shared Key set on the TV
+TV_IP   = "192.168.14.140"        
+TV_MAC  = "88:C9:E8:78:BE:7B"    
+TV_PSK  = "0000"                  
 
-REQUEST_TIMEOUT = 5               # HTTP timeout in seconds
+REQUEST_TIMEOUT = 5               
 
 
-# ─── IRCC key codes (base64-encoded) ────────────────────────────────────────
-# Source: Sony Bravia REST API / IRCC spec.
 
 IRCC_CODES = {
     # Power — from getRemoteControllerInfo
@@ -129,7 +105,6 @@ IRCC_CODES = {
 }
 
 
-# ─── Wake-on-LAN ────────────────────────────────────────────────────────────
 
 def send_wol(mac: str, broadcast: str = "255.255.255.255", port: int = 9):
     mac_bytes = bytes.fromhex(mac.replace(":", "").replace("-", ""))
@@ -139,7 +114,6 @@ def send_wol(mac: str, broadcast: str = "255.255.255.255", port: int = 9):
         s.sendto(magic, (broadcast, port))
 
 
-# ─── REST Transport ─────────────────────────────────────────────────────────
 
 def sony_call(service: str, method: str, params: list = [],
               version: str = "1.0") -> dict | None:
@@ -216,7 +190,6 @@ def _is_success(resp: dict | None) -> bool:
     return "result" in resp
 
 
-# ─── Commands ───────────────────────────────────────────────────────────────
 
 def cmd_on(_args):
     # TvPower is a toggle — safe because SonyAutomation checks state first
@@ -227,7 +200,6 @@ def cmd_on(_args):
 
 
 def cmd_off(_args):
-    # TvPower is a toggle — safe because SonyAutomation checks state first
     if sony_ircc(IRCC_CODES["tv_power"]):
         print("📴 Power off sent.")
     else:
@@ -399,7 +371,6 @@ def cmd_raw(args):
     print(_json.dumps(resp, indent=2))
 
 
-# ─── CLI ────────────────────────────────────────────────────────────────────
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(

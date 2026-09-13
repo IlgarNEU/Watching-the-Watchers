@@ -1,7 +1,3 @@
-#TODO: Fix Timings
-#TODO: Verify all scenario navigation sequences against actual KD-32W830K
-#TODO: Confirm ACR menu path on KD-32W830K
-
 import subprocess
 import socket
 import logging
@@ -10,11 +6,9 @@ from datetime import datetime
 import asyncio
 
 
-# ==========================================
-# Timing Constants
-# ==========================================
+
 KEY_DELAY = 4
-BOOT_DELAY = 25         # REST server takes a few seconds to come up after WoL
+BOOT_DELAY = 25         
 MAX_BOOT_RETRIES = 5
 BOOT_POLL_INTERVAL = 10
 RUN_CMD_RETRIES = 10
@@ -29,19 +23,15 @@ NETFLIX_LOAD_WAIT = 40
 NETFLIX_PREVIEW_WAIT = 225
 
 
-# ==========================================
-# Sony Bravia Configuration
-# ==========================================
-TV_IP   = "192.168.14.140"        # KD-32W830K IP
-TV_PORT = 80                      # REST API port (not 20060 - that's SSIP/BF1 only)
-TV_MAC  = "88:C9:E8:78:BE:7B"    # KD-32W830K MAC (from getSystemInformation)
+
+TV_IP   = "192.168.14.140"        
+TV_PORT = 80                      
+TV_MAC  = "88:C9:E8:78:BE:7B"    
 
 SCRIPT = "bravia.py"
 
 
-# ==========================================
-# Logging
-# ==========================================
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s",
@@ -54,9 +44,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# ==========================================
-# Low-Level: call bravia.py via subprocess
-# ==========================================
+
 
 def _run_script(*args) -> tuple[str, bool]:
     """Run python3 bravia.py <args>, return (output, had_error)."""
@@ -77,9 +65,7 @@ def _run_script(*args) -> tuple[str, bool]:
     return output, has_error
 
 
-# ==========================================
-# Connectivity Check (TCP probe on port 80)
-# ==========================================
+
 
 def is_tv_reachable() -> bool:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -116,9 +102,7 @@ async def wait_for_tv() -> bool:
     return True
 
 
-# ==========================================
-# Robust Command Execution
-# ==========================================
+
 
 async def run_cmd(*args):
     for attempt in range(1, RUN_CMD_RETRIES + 1):
@@ -140,9 +124,7 @@ async def run_cmd(*args):
     return False
 
 
-# ==========================================
-# Power Control
-# ==========================================
+
 
 def get_power_state() -> str | None:
     """Return 'active', 'standby', or None if unreachable."""
@@ -178,9 +160,7 @@ async def power_off():
     logger.info("Power off sent.")
 
 
-# ==========================================
-# Navigation Helpers
-# ==========================================
+
 
 async def go_home():
     logger.info("Going home...")
@@ -238,10 +218,7 @@ async def set_input_hdmi(port: int = 2):
     await run_cmd("set-input", f"hdmi{port}")
 
 
-# ==========================================
-# Base Position
-#   Press HOME 3 times to land on a known starting point.
-# ==========================================
+
 
 async def base_position():
     """Navigate to the known base position by pressing HOME 3 times."""
@@ -250,9 +227,7 @@ async def base_position():
         await run_cmd("key", "home")
 
 
-# ==========================================
-# Scenario Launchers
-# ==========================================
+
 
 async def open_idle():
     """IDLE - sit on home screen, no navigation."""
@@ -387,9 +362,7 @@ async def open_tubi():
         await key_back()
 
 
-# ==========================================
-# ACR Toggle (separate ON/OFF)
-# ==========================================
+
 
 async def toggle_acr_off():
     """Disable ACR.
@@ -421,9 +394,6 @@ async def toggle_acr_on():
     await asyncio.sleep(5)
 
 
-# ==========================================
-# Exit Helpers
-# ==========================================
 
 async def exit_to_home():
     logger.info("Exiting to home...")

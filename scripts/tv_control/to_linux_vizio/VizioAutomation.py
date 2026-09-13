@@ -1,6 +1,3 @@
-#TODO: Fix Timings
-#TODO: Fix IP address and MAC
-
 import subprocess
 import socket
 import logging

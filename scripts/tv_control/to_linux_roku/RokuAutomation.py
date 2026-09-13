@@ -1,11 +1,3 @@
-#TODO: FIX THE IP ADDRESS
-#TODO: TEST HDMI AND SCREENCAST
-#TODO: Write ScreenCast
-#TODO: Fix times of delays, etc
-#TODO: Fix Youtube Search
-#TODO: ADD delay for selects
-
-
 import asyncio
 import aiohttp
 import logging

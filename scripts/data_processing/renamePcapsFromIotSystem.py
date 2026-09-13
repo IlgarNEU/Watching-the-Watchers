@@ -1,20 +1,3 @@
-"""
-Code Description:
-
-    This code is the first phase of the pipeline. 
-    The .pcap files in Mon(IoT)r data servers are named as .pcap1, .pcap2, .pcap3, etc.
-    To convert these .pcap files to .csv files, we need to rename all files to .pcap extension in the folder.
-    After this code is called, the .pcap files will be renamed as:
-    xxxx.pcap1 -> xxxx_1.pcap
-
-
-    Code usage:
-    python3 renamePcapsFromIoTSystem.py <folder_path>
-
-    For example:
-    python3 renamePcapsFromIotSystem.py ../data/pcaps/Tizen_OS/
-"""
-
 import sys
 import os
 import re

@@ -1,28 +1,9 @@
-"""
-Autocorrelation-based periodicity analysis - one subplot per TV, combined into one figure.
-
-All TVs use autocorrelation uniformly, which is more robust than FFT
-when the capture window contains only a few cycles of the dominant period.
-
-Folder structure expected:
-    acr_domains/
-        Samsung/
-            acr-us-prd.samsungcloud.tv.csv
-        Roku TV/
-            scribe.logs.roku.com.csv
-        ...  (one CSV per TV folder)
-
-Usage:
-    python plot_fourier_all_tvs.py
-"""
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks as sp_find_peaks
 from pathlib import Path
 
-# ── Configuration ──────────────────────────────────────────────────────────────
 
 DATA_ROOT    = Path("../acr_domains")
 TV_IP_PREFIX = "192.168.14."
@@ -31,7 +12,6 @@ MIN_PERIOD   = 5
 TOP_N_PEAKS  = 3
 OUTPUT_FILE  = "fourier_all_tvs.pdf"
 
-# Per-TV config: folder name → (csv filename, start_time, end_time, max_period)
 TV_CONFIG = {
     "Samsung":      ("acr-us-prd.samsungcloud.tv.csv",       "2026-04-22 17:30:52", "2026-04-22 18:02:18",  70),
     "LG":           ("tkacrXX.alphonso.tv.csv",              "2026-04-24 22:55:00", "2026-04-24 23:11:00",  25),
@@ -54,7 +34,6 @@ TV_OS_NAME = {
     "Supersonic":  "VIDAA OS",
 }
 
-# ── Matplotlib settings for paper quality ─────────────────────────────────────
 
 plt.rcParams.update({
     "font.family":      "serif",
@@ -74,7 +53,6 @@ plt.rcParams.update({
 })
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
 
 def is_tv_ip(ip) -> bool:
     return isinstance(ip, str) and ip.startswith(TV_IP_PREFIX)
@@ -108,32 +86,21 @@ def build_signal(df: pd.DataFrame) -> np.ndarray:
     return binned.reindex(full_index, fill_value=0).values.astype(float)
 
 
-# ── Autocorrelation ────────────────────────────────────────────────────────────
 
 def compute_autocorr(signal: np.ndarray, max_period: int):
-    """
-    Normalized autocorrelation via FFT (efficient for long signals).
-    Returns (lags_in_seconds, normalized_correlation) clipped to
-    [MIN_PERIOD, max_period].
-    """
     s = signal - signal.mean()
     n   = len(s)
-    fft = np.fft.rfft(s, n=2 * n)           # zero-pad to avoid circular wrap
-    acf = np.fft.irfft(fft * np.conj(fft))  # power spectrum → autocorrelation
-    acf = acf[:n]                            # keep non-negative lags only
-    acf /= acf[0] if acf[0] != 0 else 1     # normalize to [-1, 1]
+    fft = np.fft.rfft(s, n=2 * n)           
+    acf = np.fft.irfft(fft * np.conj(fft))  
+    acf = acf[:n]                            
+    acf /= acf[0] if acf[0] != 0 else 1     
 
-    lags = np.arange(n)                      # lag in seconds (BIN_SIZE_SEC = 1)
+    lags = np.arange(n)                      
     mask = (lags >= MIN_PERIOD) & (lags <= max_period)
     return lags[mask].astype(float), acf[mask]
 
 
 def find_autocorr_peaks(lags, acf, max_period):
-    """
-    Return top-N peaks from the autocorrelation function.
-    Minimum distance between peaks = 10% of the search range, so
-    harmonics and noise bumps don't crowd out the fundamental.
-    """
     if len(lags) == 0:
         return []
 
@@ -147,7 +114,6 @@ def find_autocorr_peaks(lags, acf, max_period):
     return [{"period": lags[i], "magnitude": acf[i]} for i in top]
 
 
-# ── Per-TV processing ──────────────────────────────────────────────────────────
 
 def process_tv(tv_name, csv_file, start_time, end_time, max_period):
     csv_path = DATA_ROOT / tv_name / csv_file
@@ -170,7 +136,6 @@ def process_tv(tv_name, csv_file, start_time, end_time, max_period):
     return lags, acf, peaks, max_period
 
 
-# ── Plotting ───────────────────────────────────────────────────────────────────
 
 def plot_all(results: dict) -> None:
     valid = {k: v for k, v in results.items() if v[0] is not None}
@@ -226,7 +191,6 @@ def plot_all(results: dict) -> None:
     print(f"\nPlot saved to: {OUTPUT_FILE}")
 
 
-# ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     print("Processing TVs...\n")

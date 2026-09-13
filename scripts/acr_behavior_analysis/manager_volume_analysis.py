@@ -5,7 +5,6 @@ import argparse
 import pandas as pd
 import json
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -13,8 +12,7 @@ DATA_TIMINGS_DIR = PROJECT_ROOT / "data" / "experiment_timings"
 DATA_INDIVIDUAL_DOMAINS_DIR = PROJECT_ROOT / "data" / "individual_domain_csvs"
 DATA_FILTERING_RESULTS_DIR = PROJECT_ROOT / "data" / "filtering_results"
 
-# TV name to MAC address mapping
-# Format: Single MAC as string, or multiple MACs as list
+
 TV_MAC_MAPPING = {
     "tizen": "04:e4:b6:74:dd:94",
     "webos": "00:a1:59:8f:ab:38",
@@ -25,25 +23,12 @@ TV_MAC_MAPPING = {
     "smartcast": "14:c6:7d:15:31:56",
     "xumo": "b8:41:d9:e4:f8:ed",
     "google_tcl": "48:87:b8:ab:34:37",
-    
-    # Example: Device with multiple MACs
-    # "samsung": ["04:e4:b6:74:dd:94", "a8:5e:60:12:34:56"],
 }
 
-# Keep for backward compatibility
 TV_IP_MAPPING = TV_MAC_MAPPING
 
 
 def _normalize_mac_addresses(mac_input):
-    """
-    Convert MAC input to comma-separated string for subprocess.
-    
-    Args:
-        mac_input: Single MAC string or list of MAC strings
-        
-    Returns:
-        Comma-separated string of MACs
-    """
     if isinstance(mac_input, str):
         return mac_input
     elif isinstance(mac_input, (list, tuple)):
@@ -68,10 +53,8 @@ def run_for_row(index, row, domain_name, input_path, script_path, venv_python, f
     end_time = str(row["end_time"])
     action_name = str(row["action_name"])
     
-    # Get MAC address(es) for this device
     tv_mac = TV_MAC_MAPPING.get(folder_name, "04:e4:b6:74:dd:94")
     
-    # Normalize to comma-separated string for subprocess
     tv_mac_str = _normalize_mac_addresses(tv_mac)
 
     try:
@@ -80,7 +63,7 @@ def run_for_row(index, row, domain_name, input_path, script_path, venv_python, f
             check=True,
             capture_output=True,
             text=True,
-            timeout=300  # 5 minute timeout
+            timeout=300  
         )
         
         try:
@@ -147,11 +130,9 @@ if __name__ == "__main__":
     
     folder_name = args.folder_name
     
-    # Override MAC if provided via command line
     if args.mac:
         TV_MAC_MAPPING[folder_name] = args.mac
     
-    # Construct paths
     timing_csv = DATA_TIMINGS_DIR / folder_name / args.timing_file
     domain_list = DATA_FILTERING_RESULTS_DIR / folder_name / args.domain_file
     input_path = DATA_INDIVIDUAL_DOMAINS_DIR / folder_name
@@ -159,7 +140,6 @@ if __name__ == "__main__":
     output_csv = DATA_FILTERING_RESULTS_DIR / folder_name / args.output
     venv_python = SCRIPTS_FOLDER / "venv" / "bin" / "python"
     
-    # Verify input files exist
     for path_arg, path_name in [
         (timing_csv, "timing CSV"),
         (domain_list, "domain list"),
@@ -171,10 +151,8 @@ if __name__ == "__main__":
             print(f"ERROR: {path_name} not found: {path_arg}")
             sys.exit(1)
     
-    # Create output directory if it doesn't exist
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     
-    # Log the MAC address(es) being used
     tv_mac = TV_MAC_MAPPING.get(folder_name, "04:e4:b6:74:dd:94")
     tv_mac_str = _normalize_mac_addresses(tv_mac)
     print(f"\n{'='*60}")

@@ -3,7 +3,6 @@ from pathlib import Path
 import pandas as pd
 from collections import defaultdict
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
@@ -98,7 +97,6 @@ if __name__ == "__main__":
     csv_filename = sys.argv[1] if len(sys.argv) > 1 else "frequent_domains_top.csv"
     root_folder = DATA_FILTERING_RESULTS_DIR
     
-    # Verify root folder exists
     if not root_folder.exists():
         print(f"Error: Root folder not found: {root_folder}")
         sys.exit(1)

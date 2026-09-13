@@ -1,7 +1,3 @@
-#TODO: Fix Timings
-#TODO: Verify all scenario navigation sequences against actual TCL/Hisense layout
-#TODO: Confirm ACR menu path on target device
-
 import subprocess
 import socket
 import logging

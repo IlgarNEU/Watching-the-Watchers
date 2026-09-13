@@ -1,8 +1,3 @@
-#TODO: Fix Timings
-#TODO: Fix IP address and MAC
-#TODO: Verify all scenario navigation sequences against actual BF1
-#TODO: Confirm ACR menu path on Bravia BF1
-
 import subprocess
 import socket
 import logging
@@ -11,11 +6,9 @@ from datetime import datetime
 import asyncio
 
 
-# ==========================================
-# Timing Constants
-# ==========================================
+
 KEY_DELAY = 3
-BOOT_DELAY = 15         # SSIP server takes a few seconds to come up after WoL
+BOOT_DELAY = 15        
 MAX_BOOT_RETRIES = 5
 BOOT_POLL_INTERVAL = 10
 RUN_CMD_RETRIES = 10
@@ -28,19 +21,15 @@ NETFLIX_LOAD_WAIT = 40
 NETFLIX_PREVIEW_WAIT =75
 
 
-# ==========================================
-# Sony Bravia Configuration
-# ==========================================
-TV_IP = "192.168.14.133"           # Update to your BF1's IP
-TV_PORT = 20060                  # SSIP fixed port
-TV_MAC = "58:18:62:30:2F:EB"     # Get from TV: View Network Status
+
+TV_IP = "192.168.14.133"           
+TV_PORT = 20060                 
+TV_MAC = "58:18:62:30:2F:EB"     
 
 SCRIPT = "bravia.py"
 
 
-# ==========================================
-# Logging
-# ==========================================
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s",
@@ -53,9 +42,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# ==========================================
-# Low-Level: call bravia.py via subprocess
-# ==========================================
+
 
 def _run_script(*args) -> tuple[str, bool]:
     """Run python3 bravia.py <args>, return (output, had_error)."""
@@ -76,9 +63,7 @@ def _run_script(*args) -> tuple[str, bool]:
     return output, has_error
 
 
-# ==========================================
-# Connectivity Check (TCP probe on SSIP port 20060)
-# ==========================================
+
 
 def is_tv_reachable() -> bool:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -92,7 +77,6 @@ def is_tv_reachable() -> bool:
 
 
 async def wait_for_tv() -> bool:
-    """Wait for TV's SSIP server to become reachable."""
     logger.info("Waiting for TV to become reachable...")
     await asyncio.sleep(BOOT_DELAY)
 
@@ -115,9 +99,7 @@ async def wait_for_tv() -> bool:
     return True
 
 
-# ==========================================
-# Robust Command Execution
-# ==========================================
+
 
 async def run_cmd(*args):
     for attempt in range(1, RUN_CMD_RETRIES + 1):
@@ -139,9 +121,7 @@ async def run_cmd(*args):
     return False
 
 
-# ==========================================
-# Power Control
-# ==========================================
+
 
 async def power_on():
     logger.info("Waking Sony Bravia TV...")
@@ -157,9 +137,7 @@ async def power_off():
     logger.info("Power off sent.")
 
 
-# ==========================================
-# Navigation Helpers
-# ==========================================
+
 
 async def go_home():
     logger.info("Going home...")
@@ -217,10 +195,7 @@ async def set_input_hdmi(port: int = 1):
     await run_cmd("key", f"hdmi{port}")
 
 
-# ==========================================
-# Base Position
-#   Press HOME 8 times to land on a known starting point.
-# ==========================================
+
 
 async def base_position():
     """Navigate to the known base position by pressing HOME 8 times."""
@@ -229,10 +204,7 @@ async def base_position():
         await run_cmd("key", "home")
 
 
-# ==========================================
-# Scenario Launchers
-# Exact sequences from user's BF1 hardcoded paths.
-# ==========================================
+
 
 async def open_idle():
     """IDLE — sit on home screen, no navigation."""
@@ -390,10 +362,7 @@ async def open_tubi():
     for _ in range(6):
         await key_back()
 
-# ==========================================
-# ACR Toggle (separate ON/OFF — Vizio-style)
-# Exact sequences from user's BF1 hardcoded paths.
-# ==========================================
+
 
 async def toggle_acr_off():
     """Disable ACR.
@@ -439,15 +408,11 @@ async def toggle_acr_on():
     await key_ok()
     await asyncio.sleep(5)
 
-# ==========================================
-# Exit Helpers
-# ==========================================
+
 
 async def exit_to_home():
     logger.info("Exiting to home...")
     await go_home()
 
 
-# ==========================================
-# Standalone test
-# ==========================================
+

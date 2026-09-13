@@ -7,14 +7,12 @@ import sys
 import argparse
 
 
-# Define paths relative to script location
 SCRIPT_DIR = Path(__file__).parent
 SCRIPTS_FOLDER = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
 DATA_ANALYSIS_FIGURES_DIR = PROJECT_ROOT / "data" / "analysis_figures"
 DATA_VOLUME_LOGS_DIR = PROJECT_ROOT / "data" / "volume_logs"
 
-# TV name to MAC addresses mapping
 TV_MAC_MAPPING = {
     "tizen": "04:e4:b6:74:dd:94",
     "webos": "00:a1:59:8f:ab:38",
@@ -25,9 +23,6 @@ TV_MAC_MAPPING = {
     "smartcast": "14:c6:7d:15:31:56",
     "xumo": "b8:41:d9:e4:f8:ed",
     "google_tcl": "48:87:b8:ab:34:37",
-    
-    # Example: Device with multiple MACs
-    # "samsung": ["04:e4:b6:74:dd:94", "a8:5e:60:12:34:56"],
 }
 
 
@@ -48,7 +43,6 @@ class TrafficVisualization:
             if col not in df.columns:
                 raise ValueError(f"Missing column: {col}")
 
-        # Filter by MAC
         df = df[df['src_mac'].isin(self.mac) | df['dst_mac'].isin(self.mac)]
         if df.empty:
             print("NO PACKETS FOUND")
@@ -143,7 +137,6 @@ class TrafficVisualization:
             if col not in df.columns:
                 raise ValueError(f"Missing column: {col}")
 
-        # Filter by MAC
         df = df[df['src_mac'].isin(self.mac) | df['dst_mac'].isin(self.mac)]
         if df.empty:
             print("NO PACKETS FOUND")
