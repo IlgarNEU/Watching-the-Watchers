@@ -86,7 +86,7 @@ DATA_FOLDERS = {
             "description": "Roku (TCL) csv datasets"
         },
         "google": {
-            "record_id": "REPLACE_WITH_ZENODO_RECORD_ID",
+            "record_id": "22735521",
             "description": "Google TV csv datasets"
         },
         "fire": {

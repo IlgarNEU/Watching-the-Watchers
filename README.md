@@ -144,7 +144,7 @@ On the other hand, although Zenodo has enough storage to provide the compressed 
       webOS: https://zenodo.org/records/22733487
       Roku: https://zenodo.org/records/22733497
       Roku TCL: https://zenodo.org/records/22733520
-      Google Sony TV: 
+      Google Sony TV: https://zenodo.org/records/22735521
       Fire: https://zenodo.org/records/22733576
       SmartCast: https://zenodo.org/records/22733542
 ```
