@@ -148,7 +148,7 @@ On the other hand, although Zenodo has enough storage to provide the compressed 
       Fire: https://zenodo.org/records/22733576
       SmartCast: https://zenodo.org/records/22733542
 ```
-4) The raw dataset from all smart TVs (>1 TB) is provided using Google Drive as .pcap files: https://drive.google.com/drive/folders/1QLnMNb8Zke8iQVpddlIYvZm2yjCTTrLX?usp=sharing
+4) The raw dataset from all smart TVs (>1 TB) is provided using a list of Zenodo links provided in "raw_data_links.txt" file as .pcap files.
 
 
 
@@ -332,7 +332,7 @@ The first step of the pipeline is data processing, where the .pcap files for eac
 
 
 ##### Network Traces
-The network traces (.pcap files) for all smart TVs are provided in this Google Drive link (https://drive.google.com/drive/folders/1QLnMNb8Zke8iQVpddlIYvZm2yjCTTrLX?usp=sharing). However, the total size of those files are very large (~1TB). We provide a small subset of it on Zenodo (https://zenodo.org/records/22695930) which can be downloaded as described and explained under "Download Dataset" instructions as well:
+The network traces (.pcap files) for all smart TVs are provided as a list of Zenodo links provided in "raw_data_links.txt". However, the total size of those files are very large (~1TB). We provide a small subset of it on Zenodo (https://zenodo.org/records/22695930) which can be downloaded as described and explained under "Download Dataset" instructions as well:
 
 ```bash
    python ./data_processing/download_dataset.py pcaps test_pcaps
