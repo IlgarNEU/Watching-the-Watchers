@@ -1,0 +1,23 @@
+# Files Docker should NOT copy into the image.
+
+# Your own virtual environment contains macOS binaries that do not work in
+# the Linux container; the Dockerfile creates a fresh one instead.
+scripts/venv/
+**/venv/
+**/.venv/
+
+# Python caches and OS clutter
+**/__pycache__/
+**/*.pyc
+.DS_Store
+**/.DS_Store
+.git/
+
+# Run logs are written at run time (mounted from the host).
+logs/
+
+# Data is mounted from the host at run time, except the small inputs that
+# ship with the repository.
+data/*
+!data/experiment_timings
+!data/reference

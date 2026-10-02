@@ -307,13 +307,13 @@ Please use one of the following for <os_name>:
 tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
 
 3) One .csv file per ACR endpoint with necessary fields:
-   ```bash
-   python ./data_processing/download_dataset.py csvs <os_name>
+```bash
+   python ./data_processing/download_dataset.py csv <os_name>
    ```
 
    For example,
-   ```bash
-   python ./data_processing/download_dataset.py csvs tizen
+```bash
+   python ./data_processing/download_dataset.py csv tizen
    ```
 
 
