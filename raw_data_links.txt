@@ -36,5 +36,11 @@ Roku OS Roku TV:
 - https://zenodo.org/records/23021963
 
 Roku OS TCL TV:
-- 
+- https://zenodo.org/records/23046719
+- https://zenodo.org/records/23047069
+- https://zenodo.org/records/23047380
+- https://zenodo.org/records/23047539
+- https://zenodo.org/records/23047635
+- https://zenodo.org/records/23047739
+
 
