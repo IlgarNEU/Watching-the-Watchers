@@ -6,9 +6,6 @@ Runs, for each OS:
   1. python data_processing/download_dataset.py csv <os>      (per-domain CSVs from Zenodo)
   2. python acr_behavior_analysis/manager_analysis.py <os>
 
-Place this file anywhere inside `scripts/` (e.g. `scripts/acr_behavior_analysis/`);
-it locates the `scripts/` folder on its own and can be run from any directory.
-
 Examples
 --------
   python run_analysis_pipeline.py                  # all OSes with precomputed CSVs on Zenodo

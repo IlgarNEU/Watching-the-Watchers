@@ -31,7 +31,13 @@ class IPToDNSMapper:
         self.ip_to_domains = {}
 
     def load_data(self):
-        self.df = pd.read_parquet(self.parquet_file)
+        import pyarrow.parquet as pq
+        wanted = ["est_time", "ans_data", "ans_name", "qry_name", "dst_ip", "sni"]
+        available = set(pq.read_schema(self.parquet_file).names)
+        self.df = pd.read_parquet(
+            self.parquet_file,
+            columns=[c for c in wanted if c in available],
+        )
         self.df['est_time_parsed'] = pd.to_datetime(
             self.df['est_time'], format="%Y-%m-%d %H:%M:%S.%f", errors="coerce"
         )

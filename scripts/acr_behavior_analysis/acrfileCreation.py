@@ -32,6 +32,10 @@ def analyze_all_domains(parquet_path, domain_list_csv, output_folder, mac=None):
         if output_csv.exists():
             output_csv.unlink()
 
+        if "local" in domain.lower():
+            print(f"  Skipping local DNS name '{domain}'")
+            continue
+        
         acr_ips = set()
         matched_rows = pd.DataFrame()
 

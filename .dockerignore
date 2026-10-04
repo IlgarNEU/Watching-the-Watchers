@@ -1,7 +1,5 @@
 # Files Docker should NOT copy into the image.
 
-# Your own virtual environment contains macOS binaries that do not work in
-# the Linux container; the Dockerfile creates a fresh one instead.
 scripts/venv/
 **/venv/
 **/.venv/

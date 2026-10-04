@@ -4,7 +4,6 @@
 # See README "Running with Docker" for how to run it.
 
 # Base image: Debian Linux with Python preinstalled.
-# Use the same Python minor version you developed and tested with.
 FROM python:3.13-slim
 
 # - PYTHONDONTWRITEBYTECODE / PYTHONUNBUFFERED: no .pyc files, live log output

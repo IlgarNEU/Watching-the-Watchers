@@ -2,10 +2,6 @@
 """
 run_pipeline.py - One-command reproduction of the ACR endpoint analysis pipeline.
 
-Place this file in `scripts/` or `scripts/filter_endpoints/`; it locates the
-`scripts/` folder (the one containing `filter_endpoints/` and
-`acr_behavior_analysis/`) on its own and can be run from any directory.
-
 Examples
 --------
   python run_pipeline.py tizen                     # download data + full pipeline for one OS
@@ -35,9 +31,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable, List, Optional, Set
 
-# --------------------------------------------------------------------------
-# Paths (same conventions as the individual scripts)
-# --------------------------------------------------------------------------
+
 def _find_scripts_folder() -> Path:
     """The scripts/ folder is the nearest folder (this file's own folder or a
     parent) that contains both filter_endpoints/ and acr_behavior_analysis/,
@@ -84,7 +78,7 @@ REFERENCE_DOMAINS = DATA / "reference" / "reference_domains.csv"
 VENV_PYTHON = SCRIPTS_FOLDER / "venv" / "bin" / "python"
 VOLUME_SCRIPT = SCRIPTS_FOLDER / "acr_behavior_analysis" / "volume_analysis.py"
 
-# Directories that --fresh deletes (per OS) before a full run.
+
 GENERATED_DIRS = [
     lambda o: DATA / "domain_list_csvs" / o,
     lambda o: DATA / "ip_to_dns_mappings" / o,
@@ -96,9 +90,7 @@ GENERATED_DIRS = [
 CROSSOS_NO_MATCH = "No matching domains found"
 
 
-# --------------------------------------------------------------------------
-# Step definitions
-# --------------------------------------------------------------------------
+
 @dataclass
 class Step:
     key: str
