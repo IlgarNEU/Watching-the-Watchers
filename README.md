@@ -39,6 +39,9 @@ This research artifact includes:
 
 ├── README.md                  # This file
 ├── LICENSE                    # License file
+├── Dockerfile                 # Dockerfile
+├── .dockerignore              # Files to be ignored for docker
+├── raw_data_links.txt         # Zenodo links to store raw dataset
 ├── scripts/
 │   ├── data_processing        # Data preprocessing scripts
 │   ├── filter_endpoints       # Network endpoint filtering scripts (Section 5.1)
@@ -81,9 +84,10 @@ to transfer sensitive household data, including PII.
 
 ### Hardware Requirements
 For reproducibility tests:
-1. < 5 GB storage
-2. ~ 1 human-hour + ~ 2 compute-hours
-2. Can be run on a laptop
+1. 16 GB memory available to Docker
+2. < 5 GB storage
+3. ~ 1 human-hour + ~ 2 compute-hours (for one smart-TV)
+4. Can be run on a laptop
 
 For the full dataset for all smart TVs:
 1. High CPU compute power (would take >6h on a laptop)
@@ -94,7 +98,7 @@ The dataset for all smart TVs require >1TB storage. However, for reproducibility
 
 ### Software Requirements
 
-1. The experiments were run successfully on Ubuntu 26.04 and MacOS Tahoe Version 26.2.
+1. The experiments were run successfully on Ubuntu 26.04 and MacOS Tahoe Version 26.2 (each had >24 GB memory).
 2. The scripts do not require a special version of the listed operating systems, as long as Python 3 and TShark are available (instructions are provided for installation under "Environment" section). They were tested using Python 3.13.7.
 3. Python virtual environment is required (instructions are provided).
 4. requirements.txt contains the list of required dependencies.
@@ -152,7 +156,53 @@ On the other hand, although Zenodo has enough storage to provide the compressed 
 
 
 
-### Set Up the Environment
+### Set Up the Environment (with Docker)
+1. Install Docker.
+
+You can download Docker from the official website: https://www.docker.com/get-started/
+
+2. Start the docker and fix the memory:
+The pipelines load large network captures into memory. On macOS and Windows, Docker Desktop limits the memory available to containers (by default often half of the machine's RAM). Before running, open Docker Desktop and set Settings → Resources → Memory limit to at least 16 GB, then click Apply & restart. Check the value with:
+
+```bash
+docker info | grep -i "total memory"
+```
+
+On Linux, containers can use all of the machine's memory by default.
+
+3. Clone the repository
+
+```bash
+git clone https://github.com/IlgarNEU/Watching-the-Watchers.git
+```
+
+4. Go inside the repository folder on terminal, build the Docker image:
+
+```bash
+cd Watching-the-Watchers
+docker build -t acr-artifact .
+mkdir -p logs
+```
+
+The build takes a few minutes. All following commands must be run from the repository root (the folder containing Dockerfile), because the data/ and logs/ folders are shared with the container from there.
+
+Platform notes
+Linux: add the following after docker run in every command below, so the generated files are owned by your user.
+```bash
+--user "$(id -u):$(id -g)" 
+```
+
+Windows (PowerShell): replace $(pwd) with ${PWD}.
+
+### Testing the Environment (with Docker)
+```bash
+docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/run_filter_pipeline.py tizen --dry-run
+```
+
+The output should end with Pre-flight check passed and a list of commands.
+
+### Set Up the Environment (without Docker)
 
 1. Clone the repository
 
@@ -320,8 +370,16 @@ tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_no
 
 
 #### Step 1: Data Processing
-NOTE! We expect that the provided commands are run inside scripts folder.
+##### Automated Mode:
 
+The following command downloads 9 sample source .pcap files into "/data/pcaps/test_pcaps" folder, renames the files, converts them to .csv format, and merges them into one .parquet file with necessary fields. Those files can be found under "/data/pcaps/test_pcaps", "/data/csvs/test_pcaps", and "/data/parquets/test_pcaps" folders, correspondingly.
+
+```bash
+docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python data_processing/run_processing_pipeline.py pcaps test_pcaps
+```
+
+##### Manual Mode: 
 The scripts to complete this processing step are provided inside "scripts/data_processing/" folder.
 
 The first step of the pipeline is data processing, where the .pcap files for each smart TV are renamed, converted to .csv, and merged into a large .parquet file. 
@@ -331,32 +389,36 @@ The first step of the pipeline is data processing, where the .pcap files for eac
 - Storage: ~ 1.5 GB
 
 
-##### Network Traces
+###### Network Traces
 The network traces (.pcap files) for all smart TVs are provided as a list of Zenodo links provided in "raw_data_links.txt". However, the total size of those files are very large (~1TB). We provide a small subset of it on Zenodo (https://zenodo.org/records/22695930) which can be downloaded as described and explained under "Download Dataset" instructions as well:
 
 ```bash
-   python ./data_processing/download_dataset.py pcaps test_pcaps
+   docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python data_processing/download_dataset.py pcaps test_pcaps
 ```
 
-##### Rename Pcaps
+###### Rename Pcaps
 Our IoT data collection system enumerates and names .pcap files with sequence numbers. For example, xxx.pcap, xxx.pcap1, xxx.pcap2, etc.
 First, we need to rename the files to have correct .pcap extension.
 ```bash
-      python ./data_processing/renamePcapsFromIotSystem.py test_pcaps
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python data_processing/renamePcapsFromIotSystem.py test_pcaps
 ```
 - Expected output: Inside data/pcaps/test_pcaps folder, the .pcap files are correctly renamed.
 
-##### Convert .pcap files to .csv files
+###### Convert .pcap files to .csv files
 We extract the useful fields from the .pcap files and store them in .csv format.
 ```bash
-      python ./data_processing/runSniPcapToCsv.py test_pcaps
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python data_processing/runSniPcapToCsv.py test_pcaps
 ```
 - Expected output: Inside data/csvs/test_pcaps folder, the .csv files are created corresponding to individual .pcap files.
 
-##### Merge all .csv files into one large parquet for each smart TV
+###### Merge all .csv files into one large parquet for each smart TV
 We merge .csv files into one .parquet file per smart TV
 ```bash
-      python ./data_processing/mergeCsvs.py test_pcaps
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python data_processing/mergeCsvs.py test_pcaps
 ```
 - Expected output: Inside data/parquets/test_pcaps folder, the merged_all.parquet files are generated.
 
@@ -365,9 +427,17 @@ We merge .csv files into one .parquet file per smart TV
 
 
 #### Step 2: Filter Endpoints (Section 5)
+##### Automated Mode:
+The following command completes all filtering steps in a row to obtain the network endpoint used for ACR data collection by each smart-TV OS.
 
-NOTE! We expect that the provided commands are run inside scripts folder.
+```bash
+docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/run_filter_pipeline.py tizen
+```
 
+- Expected output: The final list of domains inside the file that will be noted on terminal at the end of the program.
+
+##### Manual Mode:
 If you didn't complete the first step (data processing), you can still complete this step by downloading the merged .parquet files as instructed under "Download Datasets". 
 
 - Time: 1 human-hour + 2 compute-hour per TV
@@ -375,105 +445,120 @@ If you didn't complete the first step (data processing), you can still complete 
 
 Part of the methodology is to define the ACR endpoints for each smart TV through numerous filtering steps (Section 5.1). This folder (and partly acr_behavior_analysis folder) provides the scripts for the filtering steps. Since the smart TVs contact a large number of endpoints and generate a large amount of network traffic, certain filtering steps take a considerable time (~1 hour). To skip this stage for our dataset, we also provide the .csv files for the traffic to/from the identified ACR endpoints, so that the analysis scripts can be run for those endpoints. Please see how to download the files using the script in Step 1.
 
-##### Create initial list of endpoints contacted by the smart TV
+###### Create initial list of endpoints contacted by the smart TV
 The domain_analysis_by_ip_and_sni.py script creates an ip_to_domain_mapping.csv file which maps IP addresses to domain names.
 Also, this script creates the list of endpoints contacted by the smart TV during each experiment session.
 
 Please use the following commands for <os_name>: tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
 ```bash
-      python ./filter_endpoints/domain_analysis_by_ip_and_sni.py <os_name>
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/domain_analysis_by_ip_and_sni.py <os_name>
 ```
 
 ```bash
-      python ./filter_endpoints/mixed_domain_analysis_by_ip_and_sni.py <os_name>
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/mixed_domain_analysis_by_ip_and_sni.py <os_name>
 ```
 
 For example:
 ```bash
-      python ./filter_endpoints/domain_analysis_by_ip_and_sni.py tizen
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/domain_analysis_by_ip_and_sni.py tizen
 ```
 
 ```bash
-      python ./filter_endpoints/mixed_domain_analysis_by_ip_and_sni.py tizen
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/mixed_domain_analysis_by_ip_and_sni.py tizen
 ```
 
 - The expected output is ip_to_dns_mapping.csv file inside data/ip_to_dns_mapping/<os_name> folder and the list of domains for each experiment inside data/domain_list_csvs/<os_name> folder.
 
-##### Filter well-known services
+###### Filter well-known services
 Once we have the list of all endpoints, we remove the ones for well known services. 
 
 Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
 ```bash
-      python ./filter_endpoints/filter_domains.py <os_name>
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/filter_domains.py <os_name>
 ```
 
 For example:
 ```bash
-      python ./filter_endpoints/filter_domains.py tizen
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/filter_domains.py tizen
 ```
 - The expected output is well-known-services-filtered.csv inside /data/filtering_results folder.   
 
-##### Group by base name
+###### Group by base name
 We group the fully qualified domain names into base domain names. 
 
 Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
 
 ```bash
-      python ./filter_endpoints/group_base_domains.py <os_name>
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/group_base_domains.py <os_name>
 ```
 
 For example:
 ```bash
-      python ./filter_endpoints/group_base_domains.py tizen
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/group_base_domains.py tizen
 ```
 
 - The expected output is grouped_by_base.csv inside /data/filtering_results folder.   
 
-##### Opt-in filter
+###### Opt-in filter
 We detect the endpoints contacted during a number of experiments above the defined threshold:
 
 Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, google, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
 
 ```bash
-      python ./filter_endpoints/quantify_domain_existence.py <os_name>
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/quantify_domain_existence.py <os_name>
 ```
 
 - The expected output is frequent_domains_top.csv inside /data/filtering_results folder.  
 
-##### cross-OS filter
+###### cross-OS filter
 NOTE! This step can be run in one of the two alternative methods:
 1) The scripts until that point can be run for all TVs, so that in this step, the enpoints common to at least two smart TVs can be detected and eliminated. For that method:
 ```bash
-      python ./filter_endpoints/crossOS_filtering.py
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/crossOS_filtering.py
 ```
 2) If there is a time limitation to running the scripts for all TVs first, we provide the list of domains common to at least two smart TVs, so that the script can be run for each smart TV, even if the previous steps have not been completed for all TVs:
 ```bash
-      python ./filter_endpoints/crossOS_filtering_from_list.py
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/crossOS_filtering_from_list.py
 ```
 - The expected output is frequent_domains_top_filtered.csv inside /data/filtering_results folder.  
 
-##### traffic ratio
+###### traffic ratio
 
 To detect the traffic ratio for the individual domains, so that we can identify the endpoints with higher outgoing traffic, we need to create the .csv files for each individual endpoint remaining from the previous steps. 
 
 Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, fire, smartcast, xumo, google_sony_non_acr, google_hisense, google_tcl
 ```bash
-      python ./filter_endpoints/create_the_final_domain_list.py <os_name>
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/create_the_final_domain_list.py <os_name>
 ```
 ```bash
-      python ./acr_behavior_analysis/acrfileCreation.py <os_name>
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python acr_behavior_analysis/acrfileCreation.py <os_name>
 ```
 ```bash
-      python ./acr_behavior_analysis/manager_volume_analysis.py <os_name>
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python acr_behavior_analysis/manager_volume_analysis.py <os_name>
 ```
 
 Because Sony Google TV uses DNS over HTTPS, a separate script is used to create the ACR endpoint traffic database and its analysis:
 ```bash
-      python ./acr_behavior_analysis/sony_acrfileCreation.py google
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python acr_behavior_analysis/sony_acrfileCreation.py google
 ```
 - The expected output is individual .csv files names as domain names inside /data/individual_domain_csvs/ folder and ratio.csv file inside /data/filtering_results folder.
 
-##### periodicity analysis
+###### periodicity analysis
 Then we define the list of domains with periodic behavior:
 
 NOTE! Please note that certain TVs do not need to be tested for periodicity since only one domain is left in the previous step. (Table 4)
@@ -483,12 +568,24 @@ NOTE! Please note that certain TVs do not need to be tested for periodicity sinc
 Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, smartcast, google_tcl
 
 ```bash
-      python ./filter_endpoints/periodicity_analysis.py <os_name>
+      docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/periodicity_analysis.py <os_name>
 ```
 
 Expected output: The list of endpoints with periodic behavior will be printed on the terminal and saved to data/periodicity_results/<os_name>/periodic_domains.csv file
 
-### Step 3: ACR behavior analysis (Section 6)
+#### Step 3: ACR behavior analysis (Section 6)
+##### Automated Mode:
+The following command creates the time-series and cdf plots for the network traffic to the ACR endpoints of each smart TV. 
+
+```bash
+docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python acr_behavior_analysis/run_analysis_pipeline.py
+```
+
+- Expected output: The graphs are generated under "/data/analysis_figures" folder. Through the inspection of the generated plots, it is possible to reproduce our takeaways for each smart-TV's ACR behavior.
+
+##### Manual Mode:
 - Time: 30 human-minutes + 30 compute-minutes
 - Storage: < 1 GB
 
@@ -503,11 +600,13 @@ When ACR is opted-out by a user, we expect to see low or no network traffic to t
 
 Please use one of the following for <os_name>: tizen, webos, roku_roku, roku_tcl, fire, smartcast
 ```bash
-   python ./acr_behavior_analysis/manager_analysis.py <os_name>
+   docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python acr_behavior_analysis/manager_analysis.py <os_name>
 ```
 For Sony Google TV:
 ```bash
-   python ./acr_behavior_analysis/sony_manager_analysis.py google
+   docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python acr_behavior_analysis/sony_manager_analysis.py google
 ```
 
 
