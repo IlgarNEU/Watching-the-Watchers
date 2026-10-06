@@ -199,7 +199,7 @@ Linux: add the following after "docker run --rm -it" in every command below, so 
 For example: 
 ```bash
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
-  acr-artifact python data_processing/run_processing_pipeline.py pcaps test_pcaps
+  acr-artifact python acr_behavior_analysis/run_analysis_pipeline.py
 ```
 
 Windows (PowerShell): replace $(pwd) with ${PWD}.
