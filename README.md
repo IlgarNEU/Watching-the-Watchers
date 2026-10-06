@@ -191,9 +191,15 @@ mkdir -p logs
 The build takes a few minutes (~4 minutes on author's machine). All following commands must be run from the repository root (the folder containing Dockerfile), because the data/ and logs/ folders are shared with the container from there.
 
 Platform notes
-Linux: add the following after docker run in every command below, so the generated files are owned by your user.
+Linux: add the following after "docker run --rm -it" in every command below, so the generated files are owned by your user.
 ```bash
 --user "$(id -u):$(id -g)" 
+```
+
+For example: 
+```bash
+docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python data_processing/run_processing_pipeline.py pcaps test_pcaps
 ```
 
 Windows (PowerShell): replace $(pwd) with ${PWD}.
