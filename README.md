@@ -86,8 +86,7 @@ to transfer sensitive household data, including PII.
 For reproducibility tests:
 1. 16 GB memory available to Docker
 2. < 5 GB storage
-3. ~ 1 human-hour + ~ 2 compute-hours (for one smart-TV)
-4. Can be run on a laptop
+4. Can be run on a laptop with at least 16 GB memory available for Dicker
 
 For the full dataset for all smart TVs:
 1. High CPU compute power (would take >6h on a laptop)
@@ -106,10 +105,10 @@ The dataset for all smart TVs require >1TB storage. However, for reproducibility
 ### Estimated Time and Storage Consumption
 
 For reproducibility tests:
-1. ~ 1 human-hour + ~ 2 compute-hours
+1. [~10 human-minutes + ~ 2 compute-hours] (in automatic mode for one smart TV) or [~ 1 human-hour + ~ 2 compute-hours] (in manual mode for one smart TV)
 2. < 5 GB storage
 
-For the full dataset for one smart TVs:
+For the full dataset for one smart TV:
 1. ~ 1 human-hour + ~ 24 compute-hours
 2. ~ 100 GB storage
 
@@ -122,8 +121,6 @@ The storage requirement also depends on the number of steps to be completed. The
 ### Accessibility
 
 The TV-control scripts, data processing and analysis code, ACR endpoint blocklist, and per-TV record of candidate endpoints after each filtering step are provided in this GitHub repository. (https://github.com/IlgarNEU/Watching-the-Watchers.git) The repository also contains the metadata, such as timing logs of the experiments, which is necessary to run the scripts. We provide the larger dataset necessary to run the scripts on Zenodo. 
-
-On the other hand, although Zenodo has enough storage to provide the compressed version of the full dataset and/or subset of raw dataset to test scripts end-to-end, the size of our full raw dataset which may be beneficial for IoT researchers is over Zenodo's storage limitations (>1 TB). To overcome this limitation and support future IoT research, we follow this methodology:
 
 1) We provide a subset of source raw data on Zenodo to support usage of the scripts end-to-end: https://zenodo.org/records/22695930 
 
@@ -154,7 +151,14 @@ On the other hand, although Zenodo has enough storage to provide the compressed 
 ```
 4) The raw dataset from all smart TVs (>1 TB) is provided using a list of Zenodo links provided in "raw_data_links.txt" file as .pcap files.
 
-
+### Required Packages
+The requirements.txt file contains the list of dependencies (Python libraries) which is also provided below:
+pandas==3.0.5
+numpy==2.5.2
+scipy==1.18.0
+matplotlib==3.11.1
+pyarrow==25.0.1
+requests==2.32.5
 
 ### Set Up the Environment (with Docker)
 1. Install Docker.
@@ -184,7 +188,7 @@ docker build -t acr-artifact .
 mkdir -p logs
 ```
 
-The build takes a few minutes. All following commands must be run from the repository root (the folder containing Dockerfile), because the data/ and logs/ folders are shared with the container from there.
+The build takes a few minutes (~4 minutes on author's machine). All following commands must be run from the repository root (the folder containing Dockerfile), because the data/ and logs/ folders are shared with the container from there.
 
 Platform notes
 Linux: add the following after docker run in every command below, so the generated files are owned by your user.
@@ -200,7 +204,7 @@ docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
   acr-artifact python filter_endpoints/run_filter_pipeline.py tizen --dry-run
 ```
 
-The output should end with Pre-flight check passed and a list of commands.
+The output should end with "Pre-flight check passed" and a list of commands.
 
 ### Set Up the Environment (without Docker)
 
@@ -257,7 +261,7 @@ source ./venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Testing the Environment 
+### Testing the Environment (without Docker)
 
 Test dependency installation:
 
@@ -378,7 +382,12 @@ The following command downloads 9 sample source .pcap files into "/data/pcaps/te
 docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
   acr-artifact python data_processing/run_processing_pipeline.py pcaps test_pcaps
 ```
+If the script fails after certain steps, it is possible to continue the program from that step using the following command:
 
+```bash
+docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python data_processing/run_processing_pipeline.py pcaps test_pcaps --from-step <N>
+```
 ##### Manual Mode: 
 The scripts to complete this processing step are provided inside "scripts/data_processing/" folder.
 
@@ -437,6 +446,12 @@ docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
 
 - Expected output: The final list of domains inside the file that will be noted on terminal at the end of the program.
 
+If the script fails after certain steps, it is possible to continue the program from that step using the following command:
+
+```bash
+docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
+  acr-artifact python filter_endpoints/run_filter_pipeline.py tizen --from-step <N>
+```
 ##### Manual Mode:
 If you didn't complete the first step (data processing), you can still complete this step by downloading the merged .parquet files as instructed under "Download Datasets". 
 
@@ -583,7 +598,7 @@ docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
   acr-artifact python acr_behavior_analysis/run_analysis_pipeline.py
 ```
 
-- Expected output: The graphs are generated under "/data/analysis_figures" folder. Through the inspection of the generated plots, it is possible to reproduce our takeaways for each smart-TV's ACR behavior.
+- Expected output: The graphs are generated under "/data/analysis_figures" folder. Through the inspection of the generated plots (as explained under "Main Results and Claims"), it is possible to reproduce our takeaways for each smart-TV's ACR behavior.
 
 ##### Manual Mode:
 - Time: 30 human-minutes + 30 compute-minutes
@@ -614,7 +629,7 @@ For Sony Google TV:
 
 1) Although we provide the automated control scripts for smart TVs, the hardware (smart TV) is required to test them. However, we provide our dataset, which helps to reproduce the results from our dataset.
 
-2) The automation of processing/analysis scripts into a pipeline is not recommended. The reason is that domain names use dynamic patterns. For example, tkacr41.alphonso.tv and tkacr37.alphonso.tv are both ACR endpoints for LG TV, and it has 41 ACR endpoints in our traces. As a result, certain OS'es require manual handling of the file names in certain stages. On the other hand, some OSes, for example, Tizen OS uses a single ACR endpoint and the described steps can be run smoothly without requiring manual file name handling.
+2) The automation of processing/analysis scripts into a pipeline is not recommended. The reason is that domain names use dynamic patterns. For example, tkacr41.alphonso.tv and tkacr37.alphonso.tv are both ACR endpoints for LG TV, and it has 41 such ACR endpoints in our traces. As a result, certain OS'es require manual handling of the file names in certain stages. On the other hand, some OSes, for example, Tizen OS uses a single ACR endpoint and the described steps can be run smoothly without requiring manual file name handling.
 
 ## 📄 License
 
