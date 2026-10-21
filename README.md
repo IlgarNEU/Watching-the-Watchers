@@ -604,7 +604,7 @@ docker run --rm -it -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" \
   acr-artifact python acr_behavior_analysis/run_analysis_pipeline.py
 ```
 
-- Expected output: The graphs are generated under "/data/analysis_figures" folder. Through the inspection of the generated plots (as explained under "Main Results and Claims"), it is possible to reproduce our takeaways for each smart-TV's ACR behavior.
+- Expected output: The heatmap (Figure 6) is generated under "/data/analysis_figures/heatmaps" folder. Through the inspection of the generated plot, it is possible to reproduce our takeaways for each smart-TV's ACR behavior.
 
 ##### Manual Mode:
 - Time: 30 human-minutes + 30 compute-minutes
