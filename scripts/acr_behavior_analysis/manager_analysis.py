@@ -192,7 +192,7 @@ if __name__ == "__main__":
     print(f"Script: {script_path}")
     print(f"TV MAC(s): {tv_mac}")
     print(f"{'='*60}\n")
-    
+    """
     successful = 0
     failed = 0
     
@@ -229,3 +229,4 @@ if __name__ == "__main__":
     if failed > 0:
         print(f"✗ Failed: {failed} domain(s)")
     print(f"{'='*60}")
+    """

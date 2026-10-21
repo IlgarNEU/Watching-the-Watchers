@@ -3,8 +3,14 @@
 run_analysis_pipeline.py - One-command reproduction of the ACR behavior analysis.
 
 Runs, for each OS:
-  1. python data_processing/download_dataset.py csv <os>      (per-domain CSVs from Zenodo)
-  2. python acr_behavior_analysis/manager_analysis.py <os>
+  1. python data_processing/download_dataset.py csv <os>                 (per-domain CSVs from Zenodo)
+  2. python acr_behavior_analysis/manager_analysis.py <os>               (time-series / CDF analysis)
+  3. python acr_behavior_analysis/manager_analysis_labeling.py <os> \
+         --script analysis_labeling.py                                    (traffic volume per window)
+  4. python acr_behavior_analysis/label_experiments.py <os>              (On/Off labels)
+
+Then once, for every OS whose labeling succeeded:
+  5. python acr_behavior_analysis/plot_heatmap.py <os...> --combined     (ACR heatmap figure)
 
 Examples
 --------
@@ -12,9 +18,12 @@ Examples
   python run_analysis_pipeline.py tizen
   python run_analysis_pipeline.py tizen webos fire
   python run_analysis_pipeline.py tizen --skip-download   # reuse CSVs already on disk
+  python run_analysis_pipeline.py --skip-download --skip-analysis   # only volume, labels, heatmap
+  python run_analysis_pipeline.py --skip-plot
   python run_analysis_pipeline.py tizen --dry-run
 
 Full output of every step goes to logs/<timestamp>_analysis/<os>/NN_<step>.log
+(the heatmap goes to logs/<timestamp>_analysis/_combined/plot_heatmap.log)
 under the project root. The exit code is non-zero if any step failed.
 """
 
@@ -46,14 +55,27 @@ LOG_ROOT = PROJECT_ROOT / "logs"
 DOWNLOAD_SCRIPT = "data_processing/download_dataset.py"
 MANAGER_SCRIPT = "acr_behavior_analysis/manager_analysis.py"
 ANALYSIS_SCRIPT = SCRIPTS_FOLDER / "acr_behavior_analysis" / "analysis.py"
+MANAGER_LABELING_SCRIPT = SCRIPTS_FOLDER / "acr_behavior_analysis" / "manager_analysis_labeling.py"
+ANALYSIS_LABELING_SCRIPT = SCRIPTS_FOLDER / "acr_behavior_analysis" / "analysis_labeling.py"
+LABELING_SCRIPT = SCRIPTS_FOLDER / "acr_behavior_analysis" / "label_experiments.py"
+PLOTTING_SCRIPT = SCRIPTS_FOLDER / "acr_behavior_analysis" / "plot_heatmap.py"
 VENV_PYTHON = SCRIPTS_FOLDER / "venv" / "bin" / "python"
 
-# manager_analysis.py exits 0 even when some domains fail; this line reveals it.
+# manager_analysis.py and manager_analysis_labeling.py exit 0 even when some
+# domains fail; this line reveals it.
 MANAGER_FAIL_MARKER = "✗ Failed:"
 
 
 def individual(o: str) -> Path:
     return DATA / "individual_domain_csvs" / o
+
+
+def volume_csv(o: str) -> Path:
+    return DATA / "volume_results" / o / "traffic_volume.csv"
+
+
+def labeled_csv(o: str) -> Path:
+    return DATA / "volume_results" / o / "traffic_volume_labeled.csv"
 
 
 def rel(p: Path) -> str:
@@ -87,18 +109,24 @@ def dataset_oses(data_type: str) -> List[str]:
     return sorted(d.name for d in base.iterdir() if d.is_dir()) if base.is_dir() else []
 
 
-def check_dependencies(download: bool) -> List[str]:
-    needed = ["pandas"] + (["requests"] if download else [])
+def check_dependencies(download: bool, plot: bool) -> List[str]:
+    needed = ["pandas"] + (["requests"] if download else []) + (["matplotlib"] if plot else [])
     return [m for m in needed if importlib.util.find_spec(m) is None]
 
 
-def preflight(o: str, download: bool) -> List[str]:
+def preflight(o: str, download: bool, analysis: bool, labeling: bool) -> List[str]:
     problems = []
-    scripts = [MANAGER_SCRIPT] + ([DOWNLOAD_SCRIPT] if download else [])
+    scripts = []
+    if download:
+        scripts.append(SCRIPTS_FOLDER / DOWNLOAD_SCRIPT)
+    if analysis:
+        scripts += [SCRIPTS_FOLDER / MANAGER_SCRIPT, ANALYSIS_SCRIPT]
+    if labeling:
+        scripts += [MANAGER_LABELING_SCRIPT, ANALYSIS_LABELING_SCRIPT, LABELING_SCRIPT]
     for s in scripts:
-        if not (SCRIPTS_FOLDER / s).exists():
-            problems.append(f"script not found: {rel(SCRIPTS_FOLDER / s)}")
-    for p in (DATA / "experiment_timings" / o / "timing.csv", ANALYSIS_SCRIPT, VENV_PYTHON):
+        if not s.exists():
+            problems.append(f"script not found: {rel(s)}")
+    for p in (DATA / "experiment_timings" / o / "timing.csv", VENV_PYTHON):
         if not p.exists():
             problems.append(f"missing input: {rel(p)}")
     if not download and not any(individual(o).glob("*.csv")):
@@ -131,13 +159,48 @@ def run(cmd_args: List[str], log_path: Path, quiet: bool, markers=()):
     return rc, seen
 
 
+def show(argv: List[str]) -> str:
+    """Command for display: script paths relative to the scripts folder."""
+    out = []
+    for a in argv:
+        p = Path(a)
+        out.append(str(p.relative_to(SCRIPTS_FOLDER)) if p.is_absolute() and
+                   SCRIPTS_FOLDER in p.parents else a)
+    return " ".join(out)
+
+
+def check_output(key: str, o: str):
+    """Extra checks after a step exits 0. Returns (status, note)."""
+    if key == "download_csvs":
+        n_csv = len(list(individual(o).glob("*.csv")))
+        if n_csv == 0:
+            return "FAILED", f"no CSV files in {rel(individual(o))} after download"
+        return "OK", f"{n_csv} CSV file(s) in {rel(individual(o))}"
+    if key == "traffic_volume":
+        if not volume_csv(o).exists():
+            return "FAILED", f"{rel(volume_csv(o))} was not written"
+        return "OK", rel(volume_csv(o))
+    if key == "labeling":
+        if not labeled_csv(o).exists():
+            return "FAILED", f"{rel(labeled_csv(o))} was not written"
+        return "OK", rel(labeled_csv(o))
+    return "OK", ""
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Download per-domain CSVs and run the ACR behavior analysis for one or more OSes.")
+        description="Download per-domain CSVs, run the ACR behavior analysis, label the "
+                    "experiments and plot the heatmap for one or more OSes.")
     parser.add_argument("os_names", nargs="*",
                         help="OS folder name(s), e.g. tizen webos; omit to run all OSes")
     parser.add_argument("--skip-download", action="store_true",
                         help="use the CSVs already in data/individual_domain_csvs/<os>/")
+    parser.add_argument("--skip-analysis", action="store_true",
+                        help="skip manager_analysis.py (time-series / CDF figures)")
+    parser.add_argument("--skip-labeling", action="store_true",
+                        help="skip traffic volume + On/Off labeling (implies --skip-plot)")
+    parser.add_argument("--skip-plot", action="store_true", help="skip the combined heatmap")
+    parser.add_argument("--plot-format", default="pdf", help="heatmap format: pdf, png, svg")
     parser.add_argument("--dry-run", action="store_true", help="check inputs and print commands only")
     parser.add_argument("--quiet", action="store_true", help="write step output only to the log files")
     parser.add_argument("--stop-on-error", action="store_true",
@@ -148,14 +211,34 @@ def main():
     if not oses:
         parser.error("no OSes found; give OS name(s) explicitly")
     download = not args.skip_download
+    analysis = not args.skip_analysis
+    labeling = not args.skip_labeling
+    plot = labeling and not args.skip_plot
 
-    missing = check_dependencies(download)
+    missing = check_dependencies(download, plot)
     if missing:
         print(f"ERROR: missing Python packages in {sys.executable}: {', '.join(missing)}")
         return 1
+    if plot and not PLOTTING_SCRIPT.exists():
+        print(f"ERROR: script not found: {rel(PLOTTING_SCRIPT)} (or use --skip-plot)")
+        return 1
 
-    steps = ([("download_csvs", lambda o: [DOWNLOAD_SCRIPT, "csv", o], ())] if download else []) + \
-            [("analysis", lambda o: [MANAGER_SCRIPT, o], (MANAGER_FAIL_MARKER,))]
+    steps = []
+    if download:
+        steps.append(("download_csvs", lambda o: [DOWNLOAD_SCRIPT, "csv", o], ()))
+    if analysis:
+        steps.append(("analysis", lambda o: [MANAGER_SCRIPT, o], (MANAGER_FAIL_MARKER,)))
+    if labeling:
+        steps.append(("traffic_volume",
+                      lambda o: [str(MANAGER_LABELING_SCRIPT), o,
+                                 "--script", ANALYSIS_LABELING_SCRIPT.name],
+                      (MANAGER_FAIL_MARKER,)))
+        steps.append(("labeling", lambda o: [str(LABELING_SCRIPT), o], ()))
+    if not steps:
+        parser.error("all steps are skipped; nothing to do")
+
+    def plot_argv(os_list):
+        return [str(PLOTTING_SCRIPT), *os_list, "--combined", "--format", args.plot_format]
 
     log_dir = LOG_ROOT / (datetime.now().strftime("%Y%m%d_%H%M%S") + "_analysis")
     print("=" * 72)
@@ -163,15 +246,17 @@ def main():
     print(f"  Project root : {PROJECT_ROOT}")
     print(f"  Interpreter  : {sys.executable}")
     print(f"  OS(es)       : {', '.join(oses)}")
-    print(f"  Steps        : {', '.join(k for k, _, _ in steps)}")
+    print(f"  Steps        : {', '.join([k for k, _, _ in steps] + (['plot_heatmap'] if plot else []))}")
     if not args.dry_run:
         print(f"  Logs         : {rel(log_dir)}")
     print("=" * 72)
 
     summary, any_failure = [], False
+    labeled_oses: List[str] = []
+
     for o in oses:
         print(f"\n##### {o} #####")
-        problems = preflight(o, download)
+        problems = preflight(o, download, analysis, labeling)
         if problems:
             print("Pre-flight check failed:")
             for p in problems:
@@ -185,7 +270,8 @@ def main():
         if args.dry_run:
             print("Pre-flight check passed. Commands that would run (cwd = scripts folder):")
             for _, argv, _ in steps:
-                print(f"  python {' '.join(argv(o))}")
+                print(f"  python {show(argv(o))}")
+            labeled_oses.append(o)
             continue
 
         (log_dir / o).mkdir(parents=True, exist_ok=True)
@@ -193,21 +279,16 @@ def main():
         for n, (key, argv, markers) in enumerate(steps, 1):
             log_path = log_dir / o / f"{n:02d}_{key}.log"
             print(f"\n[{o}] step {n}/{len(steps)}: {key}")
-            print(f"[{o}] $ python {' '.join(argv(o))}")
+            print(f"[{o}] $ python {show(argv(o))}")
             t0 = time.time()
             rc, seen = run(argv(o), log_path, args.quiet, markers)
 
-            status, note = "OK", ""
             if rc != 0:
                 status, note = "FAILED", f"exit code {rc}"
             elif MANAGER_FAIL_MARKER in seen:
                 status, note = "FAILED", "one or more domains failed (see log)"
-            elif key == "download_csvs":
-                n_csv = len(list(individual(o).glob("*.csv")))
-                if n_csv == 0:
-                    status, note = "FAILED", f"no CSV files in {rel(individual(o))} after download"
-                else:
-                    note = f"{n_csv} CSV file(s) in {rel(individual(o))}"
+            else:
+                status, note = check_output(key, o)
 
             dt = time.time() - t0
             summary.append((o, key, status, dt, note))
@@ -216,8 +297,34 @@ def main():
                 print(f"[{o}] see log: {rel(log_path)}")
                 os_failed = any_failure = True
                 break
+            if key == "labeling":
+                labeled_oses.append(o)
         if os_failed and args.stop_on_error:
             break
+
+    # ---- combined heatmap over every OS that was labeled successfully
+    if plot and not (any_failure and args.stop_on_error):
+        print("\n##### combined heatmap #####")
+        if not labeled_oses:
+            print("No OS was labeled successfully; skipping the heatmap.")
+            summary.append(("(all)", "plot_heatmap", "SKIPPED", 0.0, "no labeled OS"))
+        elif args.dry_run:
+            print(f"  python {show(plot_argv(labeled_oses))}")
+        else:
+            (log_dir / "_combined").mkdir(parents=True, exist_ok=True)
+            log_path = log_dir / "_combined" / "plot_heatmap.log"
+            print(f"$ python {show(plot_argv(labeled_oses))}")
+            t0 = time.time()
+            rc, _ = run(plot_argv(labeled_oses), log_path, args.quiet)
+            dt = time.time() - t0
+            if rc == 0:
+                status, note = "OK", f"{len(labeled_oses)} OS(es)"
+            else:
+                status, note = "FAILED", f"exit code {rc}"
+                any_failure = True
+                print(f"see log: {rel(log_path)}")
+            summary.append(("(all)", "plot_heatmap", status, dt, note))
+            print(f"plot_heatmap: {status} in {fmt_duration(dt)} ({note})")
 
     if not args.dry_run:
         print("\n" + "=" * 72 + "\nSummary\n" + "=" * 72)

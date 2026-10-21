@@ -412,7 +412,7 @@ if __name__ == "__main__":
     
     title1 = f"{domain_name} {title} {start_time} {end_time}"
     figure_name = figure_dir / title1
-    
+    """
     print(f"\n[1/2] Analyzing milliseconds...")
     analyzer = TrafficVisualization(str(all_acr_csv), mac)
     analyzer.analyze_milliseconds(title1, start_time, end_time, str(figure_name))
@@ -433,3 +433,4 @@ if __name__ == "__main__":
     )
     
     print(f"\n✓ Analysis complete for {domain_name}")
+    """
