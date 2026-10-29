@@ -86,7 +86,7 @@ to transfer sensitive household data, including PII.
 For reproducibility tests:
 1. 16 GB memory available to Docker
 2. < 5 GB storage
-4. Can be run on a laptop with at least 16 GB memory available for Dicker
+3. Can be run on a laptop with at least 16 GB memory available for Docker
 
 For the full dataset for all smart TVs:
 1. High CPU compute power (would take >6h on a laptop)
