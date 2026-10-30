@@ -176,6 +176,16 @@ On Linux, containers can use all of the machine's memory by default.
 
 3. Clone the repository
 
+**Note:** Every directory on the path to the repository must have execute permission for "others" (`o+x`), otherwise Docker may fail to access the repository files. This often affects repositories cloned under your home directory, since Ubuntu 21.04+ creates home directories with `750` permissions. To check the permissions along the path, run:
+
+    namei -l /path/to/repo
+
+To fix it, add `o+x` to any directory in that list that is missing it, for example:
+
+    chmod o+x /home/<user>
+
+Alternatively, clone the repository into a location that is already accessible, such as `/opt` or `/tmp`.
+
 ```bash
 git clone https://github.com/IlgarNEU/Watching-the-Watchers.git
 ```
@@ -227,11 +237,11 @@ You can download the latest version of Python from the official website: https:/
 3. Install tshark
 On Linux:
 
+**Note:** This artifact only reads existing pcap files (`tshark -r`) and never captures live traffic, so no packet-capture privileges are needed. When the tshark installer asks "Should non-superusers be able to capture packets?", answer **No** (the default). The commands below preseed this answer automatically, matching the Dockerfile. No `wireshark` group setup is required.
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y tshark
-sudo usermod -a -G wireshark $USER
-newgrp wireshark
 ```
 
 On macOS:
@@ -351,6 +361,11 @@ We recommend continuing to read these instructions and downloading the dataset o
    python ./data_processing/download_dataset.py pcaps test_pcaps
 ```
 
+The full raw dataset of each smart TV can be downloaded using the same command, for example for Tizen OS:
+
+```bash
+   python ./data_processing/download_dataset.py pcaps tizen
+```
 
 2) Necessary fields extracted and merged into one .parquet file per smart TV:
    ```bash

@@ -21,6 +21,22 @@ DATA_FOLDERS = {
             "record_id": "22695930",
             "description": "small size pcaps datasets"
         },
+        "tizen": {
+            "record_id": ["22992415", "22994673", "22995525", "22995931", "23002274", "23002403", "23002486", "23002557", "23002672"],
+            "description": "Tizen pcaps datasets"
+        },
+        "webos": {
+            "record_id": ["23003074", "23003120", "23003201", "23003253", "23003360", "23003547", "23003644", "23003792", "23003881", "23003947", "23004036", "23004104", "23004205"],
+            "description": "WebOS pcaps datasets"
+        },
+        "roku_roku": {
+            "record_id": ["23045810", "23045376", "23043797", "23020472", "23022645", "23023100", "23021963"],
+            "description": "Roku (Roku) pcaps datasets"
+        },
+        "roku_tcl": {
+            "record_id": ["23046719", "23047069", "23047380", "23047539", "23047635", "23047739", "23047864", "23110818"],
+            "description": "Roku (TCL) pcaps datasets"
+        },
     },
     "parquets": {
         "tizen": {
