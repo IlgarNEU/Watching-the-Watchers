@@ -46,3 +46,15 @@ Roku OS TCL TV:
 - https://zenodo.org/records/23110818
 
 Fire OS:
+- https://zenodo.org/records/23197637
+- https://zenodo.org/records/23198499
+- https://zenodo.org/records/23199087
+- https://zenodo.org/records/23199505
+- https://zenodo.org/records/23199869
+- https://zenodo.org/records/23210442
+- https://zenodo.org/records/23211093
+- https://zenodo.org/records/23211658
+- https://zenodo.org/records/23212809
+- https://zenodo.org/records/23214102
+- https://zenodo.org/records/23826188
+
