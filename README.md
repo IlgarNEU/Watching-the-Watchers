@@ -241,7 +241,8 @@ On Linux:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y tshark
+echo "wireshark-common wireshark-common/install-setuid boolean false" | sudo debconf-set-selections
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark
 ```
 
 On macOS:
