@@ -12,6 +12,15 @@ Runs, for each OS:
 Then once, for every OS whose labeling succeeded:
   5. python acr_behavior_analysis/plot_heatmap.py <os...> --combined     (ACR heatmap figure)
 
+Resuming
+--------
+Progress is saved in logs/pipeline_state.json. If a download fails, the whole run
+stops. Running the same command again skips every step that already succeeded
+(as long as its output still exists), so finished OSes are not redone. A step that
+re-runs forces all later steps of that OS to re-run too. Use --force to ignore the
+saved progress. When a run finishes with no failures, the saved progress for its
+OSes is cleared, so the next run starts from scratch.
+
 Examples
 --------
   python run_analysis_pipeline.py                  # all OSes with precomputed CSVs on Zenodo
@@ -21,6 +30,7 @@ Examples
   python run_analysis_pipeline.py --skip-download --skip-analysis   # only volume, labels, heatmap
   python run_analysis_pipeline.py --skip-plot
   python run_analysis_pipeline.py tizen --dry-run
+  python run_analysis_pipeline.py tizen --force    # redo tizen even if it finished before
 
 Full output of every step goes to logs/<timestamp>_analysis/<os>/NN_<step>.log
 (the heatmap goes to logs/<timestamp>_analysis/_combined/plot_heatmap.log)
@@ -29,6 +39,7 @@ under the project root. The exit code is non-zero if any step failed.
 
 import argparse
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -51,6 +62,7 @@ SCRIPTS_FOLDER = _find_scripts_folder()
 PROJECT_ROOT = SCRIPTS_FOLDER.parent
 DATA = PROJECT_ROOT / "data"
 LOG_ROOT = PROJECT_ROOT / "logs"
+STATE_FILE = LOG_ROOT / "pipeline_state.json"
 
 DOWNLOAD_SCRIPT = "data_processing/download_dataset.py"
 MANAGER_SCRIPT = "acr_behavior_analysis/manager_analysis.py"
@@ -89,6 +101,21 @@ def fmt_duration(seconds: float) -> str:
     m, s = divmod(int(round(seconds)), 60)
     h, m = divmod(m, 60)
     return f"{h}h{m:02d}m{s:02d}s" if h else f"{m}m{s:02d}s"
+
+
+def load_state() -> dict:
+    """{os: [step keys that completed successfully]} from earlier runs."""
+    try:
+        return json.loads(STATE_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def save_state(state: dict) -> None:
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = STATE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+    tmp.replace(STATE_FILE)  # atomic, so Ctrl-C can't leave a corrupt file
 
 
 def dataset_oses(data_type: str) -> List[str]:
@@ -204,7 +231,10 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="check inputs and print commands only")
     parser.add_argument("--quiet", action="store_true", help="write step output only to the log files")
     parser.add_argument("--stop-on-error", action="store_true",
-                        help="stop at the first failing OS (by default the remaining OSes still run)")
+                        help="stop at the first failing OS (by default the remaining OSes still run; "
+                             "a failed download always stops the run)")
+    parser.add_argument("--force", action="store_true",
+                        help="redo steps that already succeeded in an earlier run")
     args = parser.parse_args()
 
     oses = args.os_names or dataset_oses("csv")
@@ -249,10 +279,17 @@ def main():
     print(f"  Steps        : {', '.join([k for k, _, _ in steps] + (['plot_heatmap'] if plot else []))}")
     if not args.dry_run:
         print(f"  Logs         : {rel(log_dir)}")
+    print(f"  Progress     : {rel(STATE_FILE)}" + (" (ignored, --force)" if args.force else ""))
     print("=" * 72)
 
-    summary, any_failure = [], False
+    state = load_state()
+    step_keys = [k for k, _, _ in steps]
+    summary, any_failure, abort = [], False, False
     labeled_oses: List[str] = []
+
+    def already_done(o: str, key: str) -> bool:
+        return (not args.force and key in state.get(o, [])
+                and check_output(key, o)[0] == "OK")
 
     for o in oses:
         print(f"\n##### {o} #####")
@@ -269,14 +306,33 @@ def main():
 
         if args.dry_run:
             print("Pre-flight check passed. Commands that would run (cwd = scripts folder):")
-            for _, argv, _ in steps:
-                print(f"  python {show(argv(o))}")
+            rerun_rest = False
+            for key, argv, _ in steps:
+                if not rerun_rest and already_done(o, key):
+                    print(f"  [skip, done earlier] python {show(argv(o))}")
+                else:
+                    rerun_rest = True
+                    print(f"  python {show(argv(o))}")
             labeled_oses.append(o)
             continue
 
         (log_dir / o).mkdir(parents=True, exist_ok=True)
         os_failed = False
+        rerun_rest = False  # once one step runs, all later steps must run too
         for n, (key, argv, markers) in enumerate(steps, 1):
+            if not rerun_rest and already_done(o, key):
+                print(f"\n[{o}] step {n}/{len(steps)}: {key} -- already done in an earlier run, skipping")
+                summary.append((o, key, "DONE", 0.0, "from an earlier run"))
+                if key == "labeling":
+                    labeled_oses.append(o)
+                continue
+            rerun_rest = True
+
+            # This step and everything after it are no longer valid until they succeed again.
+            later = set(step_keys[step_keys.index(key):])
+            state[o] = [k for k in state.get(o, []) if k not in later]
+            save_state(state)
+
             log_path = log_dir / o / f"{n:02d}_{key}.log"
             print(f"\n[{o}] step {n}/{len(steps)}: {key}")
             print(f"[{o}] $ python {show(argv(o))}")
@@ -296,14 +352,21 @@ def main():
             if status == "FAILED":
                 print(f"[{o}] see log: {rel(log_path)}")
                 os_failed = any_failure = True
+                if key == "download_csvs":
+                    print(f"\nDownload failed for {o}; stopping the run. Fix the problem and run "
+                          f"the same command again: steps that already finished will be skipped.")
+                    abort = True
                 break
+
+            state.setdefault(o, []).append(key)
+            save_state(state)
             if key == "labeling":
                 labeled_oses.append(o)
-        if os_failed and args.stop_on_error:
+        if abort or (os_failed and args.stop_on_error):
             break
 
     # ---- combined heatmap over every OS that was labeled successfully
-    if plot and not (any_failure and args.stop_on_error):
+    if plot and not abort and not (any_failure and args.stop_on_error):
         print("\n##### combined heatmap #####")
         if not labeled_oses:
             print("No OS was labeled successfully; skipping the heatmap.")
@@ -331,6 +394,20 @@ def main():
         for o, key, status, dt, note in summary:
             print(f"  {o:<22} {key:<14} {status:<7} {fmt_duration(dt):>9}  {note}")
         print(f"\nLogs: {rel(log_dir)}")
+
+    # Everything succeeded: forget the progress for the OSes in this run,
+    # so the next run starts from scratch.
+    if not args.dry_run and not any_failure:
+        for o in oses:
+            state.pop(o, None)
+        if state:
+            save_state(state)          # keep progress of OSes not in this run
+        else:
+            STATE_FILE.unlink(missing_ok=True)
+        print(f"All steps succeeded; cleared saved progress in {rel(STATE_FILE)}")
+    elif any_failure and not args.dry_run:
+        print(f"Progress saved in {rel(STATE_FILE)}; run the same command again to resume.")
+
     return 1 if any_failure else 0
 
 
@@ -338,5 +415,5 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
-        print("\nInterrupted.")
+        print("\nInterrupted. Progress saved; run the same command again to resume.")
         sys.exit(130)
