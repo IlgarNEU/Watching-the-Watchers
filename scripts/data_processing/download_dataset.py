@@ -146,7 +146,11 @@ def is_configured(record_id_field):
     return all(not s["id"].startswith("REPLACE_WITH") for s in sources)
 
 
-def download_file(file_url, output_path, filename):
+def download_file(file_url, output_path, filename, no_overwrite):
+    if no_overwrite and output_path.exists():
+        print(f"  Skipping {filename}: file already exists")
+        return True
+
     try:
         print(f"  Downloading {filename}...", end=" ", flush=True)
         response = requests.get(file_url, stream=True, timeout=30)
@@ -155,12 +159,14 @@ def download_file(file_url, output_path, filename):
         total_size = int(response.headers.get('content-length', 0))
         downloaded = 0
         
-        with open(output_path, 'wb') as f:
+        temp_output_path = output_path.parents[0] / (filename + '._download')
+        with open(temp_output_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
                     downloaded += len(chunk)
         
+        temp_output_path.rename(output_path)
         print(f"✓ ({total_size / (1024**2):.2f} MB)")
         return True
         
@@ -170,7 +176,7 @@ def download_file(file_url, output_path, filename):
         return False
 
 
-def download_from_zenodo(record_id, output_dir):
+def download_from_zenodo(record_id, output_dir, no_overwrite):
     try:
         print(f"  Fetching metadata from Zenodo (record {record_id})...", flush=True)
         response = requests.get(f"{ZENODO_API_URL}/{record_id}", timeout=10)
@@ -192,7 +198,7 @@ def download_from_zenodo(record_id, output_dir):
             filename = file_info['key']
             output_path = output_dir / filename
             
-            success = download_file(file_url, output_path, filename)
+            success = download_file(file_url, output_path, filename, no_overwrite)
             if not success:
                 all_success = False
         
@@ -208,7 +214,7 @@ def download_from_zenodo(record_id, output_dir):
         return False
 
 
-def download_tv_datasets(tv_brand, data_type):
+def download_tv_datasets(tv_brand, data_type, no_overwrite):
     """Download datasets for a specific TV brand and data type."""
     if data_type.lower() not in DATA_FOLDERS:
         print(f"\n✗ ERROR: Unknown data type '{data_type}'")
@@ -264,7 +270,7 @@ def download_tv_datasets(tv_brand, data_type):
         if multi_source:
             print(f"--- Source {i}/{len(sources)}: {source['label']} (Record {record_id}) ---")
 
-        success = download_from_zenodo(record_id, tv_data_dir)
+        success = download_from_zenodo(record_id, tv_data_dir, no_overwrite)
         
         if not success:
             any_failure = True
@@ -341,6 +347,12 @@ def main():
     )
 
     parser.add_argument(
+        "--no_overwrite",
+        action="store_true",
+        help="Download only files that are not already present"
+    )
+
+    parser.add_argument(
         "--list",
         action="store_true",
         help="List all available data types and TV brands"
@@ -362,7 +374,7 @@ def main():
         list_available_options()
         return 1
 
-    success = download_tv_datasets(args.tv_brand, args.data_type.lower())
+    success = download_tv_datasets(args.tv_brand, args.data_type.lower(), args.no_overwrite)
     return 0 if success else 1
 
 
