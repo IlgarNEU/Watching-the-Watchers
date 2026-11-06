@@ -653,6 +653,8 @@ For Sony Google TV:
 
 2) The automation of processing/analysis scripts into a pipeline is not recommended. The reason is that domain names use dynamic patterns. For example, tkacr41.alphonso.tv and tkacr37.alphonso.tv are both ACR endpoints for LG TV, and it has 41 such ACR endpoints in our traces. As a result, certain OS'es require manual handling of the file names in certain stages. On the other hand, some OSes, for example, Tizen OS uses a single ACR endpoint and the described steps can be run smoothly without requiring manual file name handling.
 
+3) We do not provide the data collected from VIDAA OS which uses plaintext communication to transfer sensitive household data, including PII. 
+
 ## 📄 License
 
 This project is licensed under the **Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC-BY-NC-ND 4.0)**.
